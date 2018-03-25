@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27130.2010
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ArduinoSimulator", "ArduinoSimulator\ArduinoSimulator.vcxproj", "{3EF48FA4-31A7-45B9-A0E1-E6F252D416EF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3EF48FA4-31A7-45B9-A0E1-E6F252D416EF}.Debug|x64.ActiveCfg = Debug|x64
+		{3EF48FA4-31A7-45B9-A0E1-E6F252D416EF}.Debug|x64.Build.0 = Debug|x64
+		{3EF48FA4-31A7-45B9-A0E1-E6F252D416EF}.Debug|x86.ActiveCfg = Debug|Win32
+		{3EF48FA4-31A7-45B9-A0E1-E6F252D416EF}.Debug|x86.Build.0 = Debug|Win32
+		{3EF48FA4-31A7-45B9-A0E1-E6F252D416EF}.Release|x64.ActiveCfg = Release|x64
+		{3EF48FA4-31A7-45B9-A0E1-E6F252D416EF}.Release|x64.Build.0 = Release|x64
+		{3EF48FA4-31A7-45B9-A0E1-E6F252D416EF}.Release|x86.ActiveCfg = Release|Win32
+		{3EF48FA4-31A7-45B9-A0E1-E6F252D416EF}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {5EEB3E61-F5DC-4B81-AB23-083A0CBFD68B}
+	EndGlobalSection
+EndGlobal
