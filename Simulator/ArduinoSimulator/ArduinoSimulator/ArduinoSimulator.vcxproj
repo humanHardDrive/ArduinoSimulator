@@ -116,10 +116,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Serial.cpp" />
     <ClCompile Include="Simulator.cpp" />
+    <ClCompile Include="SPI.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Serial.h" />
     <ClInclude Include="Simulator.h" />
+    <ClInclude Include="SPI.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
