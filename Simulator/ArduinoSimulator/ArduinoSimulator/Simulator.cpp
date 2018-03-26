@@ -7,7 +7,7 @@ unsigned int l_SystemMilliSecClk = 0;
 
 void pinMode(uint8_t pin, PIN_MODE mode)
 {
-
+	l_CurrentPinMode[pin] = mode;
 }
 
 
@@ -18,7 +18,7 @@ PIN_STATE digitalRead(uint8_t pin)
 
 void digitalWrite(uint8_t pin, PIN_STATE state)
 {
-
+	l_CurrentPinState[pin] = state;
 }
 
 
