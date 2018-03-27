@@ -115,12 +115,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Client.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Serial.cpp" />
+    <ClCompile Include="Server.cpp" />
     <ClCompile Include="Simulator.cpp" />
     <ClCompile Include="SPI.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Client.h" />
+    <ClInclude Include="Server.h" />
     <ClInclude Include="Serial.h" />
     <ClInclude Include="Simulator.h" />
     <ClInclude Include="SPI.h" />
