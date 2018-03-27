@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cstdlib>
 
+#include "Server.h"
 #include "Simulator.h"
 
 int main(int argc, char** argv)
