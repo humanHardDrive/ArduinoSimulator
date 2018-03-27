@@ -7,6 +7,8 @@
 
 #define PIN_COUNT	20
 
+typedef byte uint8_t;
+
 typedef enum
 {
 	INPUT1 = 0, //Input is defined by something else?

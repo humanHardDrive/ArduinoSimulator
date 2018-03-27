@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <string>
 
 enum SERIAL_CONFIG
 {
@@ -40,6 +41,19 @@ class Serial
 		void begin(unsigned int buadRate, SERIAL_CONFIG config);
 		void begin(unsigned int buadRate);
 
+		void print(char c);
+		void print(char* str);
+		void print(std::string str);
+		void print(int num);
+		void print(double num);
+		void print(float num);
+
+		void println(char c);
+		void println(char* str);
+		void println(std::string str);
+		void println(int num);
+		void println(double num);
+		void println(float num);
 	private:
 		unsigned int m_BaudRate;
 		SERIAL_CONFIG m_CurrentConfig;
