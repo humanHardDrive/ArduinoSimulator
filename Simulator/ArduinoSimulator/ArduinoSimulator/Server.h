@@ -11,6 +11,8 @@
 #pragma comment (lib, "Mswsock.lib")
 #pragma comment (lib, "AdvApi32.lib")
 
+#include "Client.h"
+
 class Server
 {
 	public:
@@ -22,6 +24,7 @@ class Server
 	private:
 		std::thread m_BackgroundListenerThread;
 		SOCKET m_Listener;
+		PCSTR m_Port;
 
 	private:
 		void BackgroundListener();

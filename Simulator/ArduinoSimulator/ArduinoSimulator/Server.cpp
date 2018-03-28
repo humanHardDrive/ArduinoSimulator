@@ -1,10 +1,10 @@
 #include "Server.h"
 #include "Logging.h"
 
-#include <errno.h>
-
 Server::Server()
 {
+	m_Listener = INVALID_SOCKET;
+	m_Port = "";
 }
 
 bool Server::begin(PCSTR port)
@@ -12,9 +12,6 @@ bool Server::begin(PCSTR port)
 	// create WSADATA object
 	WSADATA wsaData;
 	int iResult;
-
-	// our sockets for the server
-	m_Listener = INVALID_SOCKET;
 
 	// address info for the server to listen to
 	struct addrinfo *result = NULL;
@@ -25,7 +22,7 @@ bool Server::begin(PCSTR port)
 	if (iResult != 0) 
 	{
 		printf("WSAStartup failed with error: %d\n", iResult);
-		exit(1);
+		return false;
 	}
 
 	// set address information
@@ -41,7 +38,7 @@ bool Server::begin(PCSTR port)
 	if (iResult != 0) {
 		printf("getaddrinfo failed with error: %d\n", iResult);
 		WSACleanup();
-		exit(1);
+		return false;
 	}
 
 	// Create a SOCKET for connecting to server
@@ -51,7 +48,7 @@ bool Server::begin(PCSTR port)
 		printf("socket failed with error: %ld\n", WSAGetLastError());
 		freeaddrinfo(result);
 		WSACleanup();
-		exit(1);
+		return false;
 	}
 
 	// Set the mode of the socket to be nonblocking
@@ -63,7 +60,7 @@ bool Server::begin(PCSTR port)
 		printf("ioctlsocket failed with error: %d\n", WSAGetLastError());
 		closesocket(m_Listener);
 		WSACleanup();
-		exit(1);
+		return false;
 	}
 
 	// Setup the TCP listening socket
@@ -75,7 +72,7 @@ bool Server::begin(PCSTR port)
 		freeaddrinfo(result);
 		closesocket(m_Listener);
 		WSACleanup();
-		exit(1);
+		return false;
 	}
 
 	// no longer need address information
@@ -89,10 +86,11 @@ bool Server::begin(PCSTR port)
 		printf("listen failed with error: %d\n", WSAGetLastError());
 		closesocket(m_Listener);
 		WSACleanup();
-		exit(1);
+		return false;
 	}
 
 	m_BackgroundListenerThread = std::thread(&Server::BackgroundListener, this);
+	m_Port = port;
 
 	return true;
 }
@@ -105,5 +103,13 @@ void Server::stop()
 
 void Server::BackgroundListener()
 {
+	SOCKET ClientSocket;
+	struct sockaddr_in ClientAddress;
+	int ClientAddressLen;
 
+	ClientSocket = accept(this->m_Listener, (struct sockaddr*)&ClientAddress, &ClientAddressLen);
+	if (ClientSocket != INVALID_SOCKET)
+	{
+		DISPLAY_LOG(LVL_INFO, "Client Connected");
+	}
 }
