@@ -18,7 +18,7 @@ int main(int argc, char** argv)
 	std::cout << "Arduino Simulator v" << VERSION_MAJOR << "." << VERSION_MINOR << std::endl;
 	DISPLAY_LOG(LVL_INFO, "Logging Started. Execution Started");
 
-	server.begin(8080);
+	server.begin("8080");
 
 	SystemMilliSecClkInterrupt = CreateThread(NULL, 0, IncrementSystemMilliSecsClk, NULL, 0, NULL);
 

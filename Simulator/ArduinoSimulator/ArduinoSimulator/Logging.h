@@ -17,6 +17,6 @@ const char* LOG_STRING[ALL_LEVELS] =
 	"ERROR"
 };*/
 
-#define DISPLAY_LOG(level, format, ...)		printf("%s: %s\n", __FUNCTION__, format, __VA_ARGS__);
+#define DISPLAY_LOG(level, format, ...)		printf("%s: ", __FUNCTION__); printf(format, __VA_ARGS__); printf("\n");
 
 #endif
