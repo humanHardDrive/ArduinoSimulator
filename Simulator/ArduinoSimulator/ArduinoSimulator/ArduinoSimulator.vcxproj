@@ -119,7 +119,6 @@
     <ClCompile Include="Logging.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Serial.cpp" />
-    <ClCompile Include="Server.cpp" />
     <ClCompile Include="Simulator.cpp" />
     <ClCompile Include="SPI.cpp" />
     <ClCompile Include="TestFile.cpp" />
@@ -127,7 +126,6 @@
   <ItemGroup>
     <ClInclude Include="Client.h" />
     <ClInclude Include="Logging.h" />
-    <ClInclude Include="Server.h" />
     <ClInclude Include="Serial.h" />
     <ClInclude Include="Simulator.h" />
     <ClInclude Include="SPI.h" />
