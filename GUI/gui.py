@@ -20,6 +20,12 @@ def LoadModules(list):
 		
 		list[module].SetImport(__import__(ModuleName))
 
+def DrawHardware(HardwareList):
+	print 'Banana'
+	
+def DrawConnections(HardwareList):
+	print 'Banana'
+		
 def main():
 	print 'Simulator GUI v' + str(Version_Major) + '.' + str(Version_Minor)
 	
@@ -27,6 +33,7 @@ def main():
 	sys.path.append(os.getcwd() + '\\' + ResourcePath)
 	LoadModules(ModuleList)
 	HardwareList = hlb.BuildHardwareList(ConfigPath, ModuleList)
+	hlb.ValidateConnections(HardwareList)
 	
 	win = GraphWin('Hardware Simulator', 640, 480)
 	
