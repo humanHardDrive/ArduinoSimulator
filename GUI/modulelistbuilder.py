@@ -16,18 +16,17 @@ def BuildModule(path):
 	m.SetResourcePath(root.find('image').attrib.get('path'))
 	return m
 
-def main():
+
+def BuildModuleList(path):
 	modules = dict()
 
-	for file in os.listdir('resources'):
+	for file in os.listdir(path):
 		if(file.endswith('.xml')):
-			m = BuildModule('resources/' + file)
+			m = BuildModule(path + file)
 			
 			if(m.type not in modules):
 				modules[m.type] = m
 			else:
-				print 'Duplicate ' + m.type + ' ' + file
-		
-	print modules
-		
-main()
+				print 'Duplicate ' + m.type + ' \"' + file + '\"'
+				
+	return modules
