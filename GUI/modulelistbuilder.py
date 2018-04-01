@@ -3,10 +3,13 @@ import xml.etree.ElementTree as ET
 
 class Module:
 	def __init__(self, type):
-		self.type = type
+		self.type = type.replace(' ', '_')
 		
 	def SetResourcePath(self, path):
 		self.resourcepath = path
+		
+	def SetImport(self, Imp):
+		self.imp = Imp
 
 def BuildModule(path):
 	tree = ET.parse(path)

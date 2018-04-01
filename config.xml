@@ -13,7 +13,7 @@
 					<to device="Serial Monitor" pin="0"/>
 				</connection>
 			</connections>
-			<draw x="0" y="0"/>
+			<draw x="0" y="0" angle="0"/>
 		</device>
 		<device type="Serial Monitor" name="Serial Monitor">
 			<baudrate>9600</baudrate>
@@ -28,7 +28,7 @@
 					<to device="Arduino 0" pin="0"/>
 				</connection>
 			</connections>
-			<draw x="0" y="0"/>
+			<draw x="0" y="0" angle="0"/>
 		</device>
 	</Hardware>
 </data>

@@ -2,7 +2,7 @@ from graphics import *
 import json
 
 def GetModuleName():
-	return 'Serial_Monitor'
+	return 'LED'
 	
 def HandleJSON(msg):
 	print msg
