@@ -61,15 +61,24 @@ def BuildHardwareList(path, ModuleList):
 	
 def ValidateConnections(HardwareList):
 	print 'Validating hardware...'
+	AllConnectionsValid = True
 	
 	for HardwareName in HardwareList:
 		hardware = HardwareList[HardwareName]
 		print HardwareName + ': ' + str(len(hardware.connections)) + ' connections'
 		for connection in hardware.connections:
 			valid = True
+			NotValidReason = ''
 			if(connection[2] not in HardwareList):
 				valid = False
+				AllConnectionsValid = False
+				NotValidReason = 'Undefined device'
+			elif(HardwareName == connection[2] and connection[0] == connection[1]):
+				valid = False
+				AllConnectionsValid = False
+				NotValidReason = 'Connected to self'
 			
-			print HardwareName + '[' + connection[0] + '] -> ' + connection[2] + '[' + connection[1] + ']\tValid=' + str(valid)
+			print HardwareName + '[' + connection[0] + '] -> ' + connection[2] + '[' + connection[1] + ']\tValid=' + str(valid) + ' ' + NotValidReason
 	
 	print ''
+	return AllConnectionsValid
