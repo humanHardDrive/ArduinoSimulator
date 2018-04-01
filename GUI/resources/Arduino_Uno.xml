@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<Device name="Arduino Uno">
+	<image path="/location/to/drawing.png"/>
+	<pins>
+		<pin>
+			<Name>"0"</Name>
+			<Loc x=0 y=0/>
+			<Aliases>
+				<Alias>"RX0"</Alias>
+				<Alias>"D0"</Alias>
+			</Aliases>
+		</pin>
+		<pin>
+			<Name>"1"</Name>
+			<Aliases>
+				<Alias>"Tx0"</Alias>
+				<Alias>"D1"</Alias>
+			</Aliases>
+		</pin>
+		<pin>
+			<Name>"2"</Name>
+			<Aliases>
+			</Aliases>
+		</pin>
+				<pin>
+			<Name>"3"</Name>
+			<Aliases>
+			</Aliases>
+		</pin>
+	</pins>
+</Device>

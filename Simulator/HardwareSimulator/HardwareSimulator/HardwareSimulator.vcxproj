@@ -21,6 +21,14 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\GenericHardware\GenericHardware.vcxproj">
+      <Project>{54d97143-a6af-475c-aea8-7c4d5f9d7d73}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\SerialMonitor\SerialMonitor.vcxproj">
+      <Project>{bf0f2d5d-b0de-463f-84d5-56de69a5ef90}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{BDE37B6F-D568-4B2C-A260-AA4EC14338A6}</ProjectGuid>
@@ -72,7 +80,12 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IncludePath>$(ProjectDir)..\SerialMonitor\;$(ProjectDir)..\GenericHardware\;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <IncludePath>$(ProjectDir)..\SerialMonitor\;$(ProjectDir)..\GenericHardware\;$(IncludePath)</IncludePath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
