@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <Device name="Serial Monitor">
-	<image path="/location/to/drawing.png"/>
+	<image path="\location\to\drawing.png"/>
 	<pins>
 		<pin>
 			<Name>"0"</Name>
-			<Loc x=0 y=0/>
+			<Loc x="0" y="0"/>
 			<Aliases>
 				<Alias>"RX0"</Alias>
 			</Aliases>
