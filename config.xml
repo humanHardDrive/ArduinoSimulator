@@ -1,24 +1,34 @@
 <?xml version="1.0"?>
-<Hardware>
-    <device type="Arduino Uno" name="Arduino 0">
-		<source path="location/of/source.ino"/>
-		<connections>
-			<connection>
-				<from pin="1"/>
-				<to device="Serial Monitor" pin="1"/>
-			</connection>
-		</connections>
-		<draw x=0 y=0/>
-	</device>
-	<device type="Serial Monitor" name="Serial Monitor">
-		<baudrate>9600</baudrate>
-		<config>"8N1"</config>
-		<connections>
-			<connection>
-				<from pin="1"/>
-				<to device="Arduino 0" pin="1"/>
-			</connection>
-		</connections>
-		<draw x=0 y=0/>
-	</device>
-</Hardware>
+<data>
+	<Hardware>
+		<device type="Arduino Uno" name="Arduino 0">
+			<source path="location/of/source.ino"/>
+			<connections>
+				<connection>
+					<from pin="1"/>
+					<to device="Serial Monitor" pin="1"/>
+				</connection>
+				<connection>
+					<from pin="0"/>
+					<to device="Serial Monitor" pin="0"/>
+				</connection>
+			</connections>
+			<draw x="0" y="0"/>
+		</device>
+		<device type="Serial Monitor" name="Serial Monitor">
+			<baudrate>9600</baudrate>
+			<config>"8N1"</config>
+			<connections>
+				<connection>
+					<from pin="1"/>
+					<to device="Arduino 0" pin="1"/>
+				</connection>
+				<connection>
+					<from pin="0"/>
+					<to device="Arduino 0" pin="0"/>
+				</connection>
+			</connections>
+			<draw x="0" y="0"/>
+		</device>
+	</Hardware>
+</data>
