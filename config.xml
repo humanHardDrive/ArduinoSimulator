@@ -1,7 +1,6 @@
 <?xml version="1.0"?>
 <Hardware>
     <device type="Arduino Uno" name="Arduino 0">
-		<resource path="location/of/resources.xml"/>
 		<source path="location/of/source.ino"/>
 		<connections>
 			<connection>
@@ -9,9 +8,9 @@
 				<to device="Serial Monitor" pin="1"/>
 			</connection>
 		</connections>
+		<draw x=0 y=0/>
 	</device>
 	<device type="Serial Monitor" name="Serial Monitor">
-		<resource path="location/of/resources.xml"/>
 		<baudrate>9600</baudrate>
 		<config>"8N1"</config>
 		<connections>
@@ -20,5 +19,6 @@
 				<to device="Arduino 0" pin="1"/>
 			</connection>
 		</connections>
+		<draw x=0 y=0/>
 	</device>
 </Hardware>
