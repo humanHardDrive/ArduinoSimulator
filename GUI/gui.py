@@ -7,6 +7,7 @@ import modulelistbuilder as mlb
 import hardwarelistbuilder as hlb
 
 import thread
+import threading
 import socket
 
 ResourcePath = 'resources\\'
@@ -18,6 +19,10 @@ BUFFER_SIZE = 1024
 
 Version_Minor = 0
 Version_Major = 0
+
+StopServer = False
+ConnectionsActive = 0
+ClientLock = threading.Lock()
 
 def LoadModules(list):
 	print 'Loading Modules...'
@@ -42,27 +47,58 @@ def StartServer(ip, port):
 	print ''
 	
 	listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	s.bind((TCP_IP, TCP_PORT))
-	s.listen(32)
+	listener.bind((ip, port))
+	listener.listen(32)
 	
-	thread.start_new_thread(ServerListenerThread, (listener))
+	return thread.start_new_thread(ServerListenerThread, (listener,))
 	
 	
 def ServerListenerThread(listener):
 	print 'Starting listener...'
 	print ''
 	
-	while 1:
+	global ConnectionsActive
+	global StopServer
+	
+	while not StopServer:
 		client, clientaddress = listener.accept()
-		thread.start_new_thread(ClientThread, (client, clientaddress))
+		thread.start_new_thread(ClientThread, (client, clientaddress, ))
+		
+	print 'Waiting for connections to end...'
+	print ''
+	while ConnectionsActive > 0:
+		pass
+		
+	print 'Server closed'
+	print ''
+	listener.close()
 	
 	
 def ClientThread(client, address):
-	print 'New client ' + address
+	print 'New client ' + address[0]
+	print ''
+
+	global ConnectionsActive
+	global StopServer
 	
+	ClientLock.acquire()
+	ConnectionsActive = ConnectionsActive + 1
+	ClientLock.release()
+	
+	while not StopServer:
+		data = client.recv(BUFFER_SIZE)
+		print address[0] + ':' + data
+		
+	client.close()	
+	
+	ClientLock.acquire()
+	ConnectionsActive = ConnectionsActive - 1
+	ClientLock.release()
+		
 	
 def main():
 	print 'Simulator GUI v' + str(Version_Major) + '.' + str(Version_Minor)
+	print ''
 	
 	ModuleList = mlb.BuildModuleList(ResourcePath)
 	sys.path.append(os.getcwd() + '\\' + ResourcePath)
@@ -70,9 +106,14 @@ def main():
 	HardwareList = hlb.BuildHardwareList(ConfigPath, ModuleList)
 	hlb.ValidateConnections(HardwareList)
 	
+	ServerThread = StartServer('127.0.0.1', 8080)
+	
 	win = GraphWin('Hardware Simulator', 640, 480)
 	
 	win.getMouse()
 	win.close()
 
+	StopServer = True
+	ServerThread.join()
+	
 main()
