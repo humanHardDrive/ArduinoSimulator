@@ -19,15 +19,11 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Connection.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\GenericHardware\GenericHardware.vcxproj">
-      <Project>{54d97143-a6af-475c-aea8-7c4d5f9d7d73}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\SerialMonitor\SerialMonitor.vcxproj">
-      <Project>{bf0f2d5d-b0de-463f-84d5-56de69a5ef90}</Project>
-    </ProjectReference>
+    <ClInclude Include="Connection.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
