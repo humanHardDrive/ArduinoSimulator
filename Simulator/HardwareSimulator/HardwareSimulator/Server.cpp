@@ -1,7 +1,12 @@
 #include "Server.h"
 
-Server::Server(std::string ip, std::string port)
+Server::Server(std::string ip, std::string port, unsigned int MaxConnections)
 {
+	this->m_IP = ip;
+	this->m_Port = port;
+
+	this->m_MaxConnections = MaxConnections;
+	this->m_CurrentConnections = 0;
 }
 
 Server::~Server()
@@ -81,6 +86,7 @@ bool Server::start()
 		freeaddrinfo(result);
 		closesocket(this->m_Socket);
 		WSACleanup();
+
 		return false;
 	}
 
@@ -99,5 +105,32 @@ bool Server::start()
 		return false;
 	}
 
+	m_BackgroundAcceptThread = std::thread(&Server::ListenerBackground, this);
+
 	return true;
+}
+
+void Server::stop()
+{
+	this->m_StopServer = true;
+}
+
+void Server::ListenerBackground()
+{
+	while (!m_StopServer)
+	{
+		if (this->m_CurrentConnections < this->m_MaxConnections)
+		{
+			struct sockaddr clientaddr;
+			int addrlen;
+			SOCKET client;
+
+			client = accept(this->m_Socket, &clientaddr, &addrlen);
+			if (client)
+			{
+				this->m_CurrentConnections++;
+				printf("New client. Current connections %d/%d\n", this->m_CurrentConnections, this->m_MaxConnections);
+			}
+		}
+	}
 }
