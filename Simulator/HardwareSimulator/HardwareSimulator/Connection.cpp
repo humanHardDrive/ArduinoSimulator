@@ -1,8 +1,20 @@
 #include "Connection.h"
 
+Connection::Connection(std::string ip, std::string port)
+{
+	this->m_IP = ip;
+	this->m_Port = port;
 
+	this->m_MsgHandler = NULL;
 
-Connection::Connection()
+	this->m_StopConnection = false;
+}
+
+Connection::~Connection()
+{
+}
+
+bool Connection::start()
 {
 	// create WSADATA object
 	WSADATA wsaData;
@@ -21,7 +33,7 @@ Connection::Connection()
 	if (iResult != 0)
 	{
 		printf("WSAStartup failed with error: %d\n", iResult);
-		//exit(1);
+		return false;
 	}
 
 	// set address info
@@ -31,13 +43,13 @@ Connection::Connection()
 	hints.ai_protocol = IPPROTO_TCP;  //TCP connection!!!
 
 									  //resolve server address and port
-	iResult = getaddrinfo("127.0.0.1", "8080", &hints, &result);
+	iResult = getaddrinfo(this->m_IP.c_str(), this->m_Port.c_str(), &hints, &result);
 
 	if (iResult != 0)
 	{
 		printf("getaddrinfo failed with error: %d\n", iResult);
 		WSACleanup();
-		//exit(1);
+		return false;
 	}
 
 	// Attempt to connect to an address until one succeeds
@@ -50,7 +62,7 @@ Connection::Connection()
 		if (this->ConnectionSocket == INVALID_SOCKET) {
 			printf("socket failed with error: %ld\n", WSAGetLastError());
 			WSACleanup();
-			//exit(1);
+			return false;
 		}
 
 		// Connect to server.
@@ -61,6 +73,7 @@ Connection::Connection()
 			closesocket(this->ConnectionSocket);
 			this->ConnectionSocket = INVALID_SOCKET;
 			printf("The server is down... did not connect");
+			return false;
 		}
 	}
 
@@ -72,7 +85,7 @@ Connection::Connection()
 	{
 		printf("Unable to connect to server!\n");
 		WSACleanup();
-		//exit(1);
+		return false;
 	}
 
 	iResult = ioctlsocket(this->ConnectionSocket, FIONBIO, &iMode);
@@ -81,11 +94,70 @@ Connection::Connection()
 		printf("ioctlsocket failed with error: %d\n", WSAGetLastError());
 		closesocket(this->ConnectionSocket);
 		WSACleanup();
-		//exit(1);
+		return false;
+	}
+
+	m_BackgroundSendThread = std::thread(&Connection::ConnectionSendBackground, this);
+	m_BackgroundRecvThread = std::thread(&Connection::ConnectionRecvBackground, this);
+
+	return true;
+}
+
+void Connection::stop()
+{
+	this->m_StopConnection = true;
+	shutdown(this->ConnectionSocket, SD_BOTH);
+
+	this->m_BackgroundRecvThread.join();
+	this->m_BackgroundSendThread.join();
+}
+
+void Connection::write(std::string msg)
+{
+	this->m_QLock.lock();
+	this->m_MsgQ.push(msg);
+	this->m_QLock.unlock();
+}
+
+void Connection::SetMsgHandler(void(*MsgHandler)(std::string msg))
+{
+	this->m_MsgHandler = MsgHandler;
+}
+
+void Connection::ConnectionSendBackground()
+{
+	while (!this->m_StopConnection)
+	{
+		this->m_QLock.lock();
+
+		if (this->m_MsgQ.size() > 0)
+		{
+			std::string msg = this->m_MsgQ.front();
+			this->m_MsgQ.pop();
+
+			send(this->ConnectionSocket, msg.c_str(), msg.size(), 0);
+		}
+
+		this->m_QLock.unlock();
+
+		std::this_thread::yield();
 	}
 }
 
-
-Connection::~Connection()
+void Connection::ConnectionRecvBackground()
 {
+	char buffer[1024];
+	int bytesRead = 0;
+	
+	while (!this->m_StopConnection)
+	{
+		bytesRead = recv(this->ConnectionSocket, buffer, 1024, 0);
+
+		if (bytesRead > 0)
+			printf("Read %s\n", buffer);
+		else if (WSAGetLastError() != WSAEWOULDBLOCK)
+			this->stop();
+
+		std::this_thread::yield();
+	}
 }
