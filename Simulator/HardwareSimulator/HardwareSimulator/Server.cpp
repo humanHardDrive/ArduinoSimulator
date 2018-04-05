@@ -125,8 +125,8 @@ void Server::ListenerBackground()
 			int addrlen;
 			SOCKET client;
 
-			client = accept(this->m_Socket, &clientaddr, &addrlen);
-			if (client)
+			client = accept(this->m_Socket, NULL, NULL);
+			if (client != INVALID_SOCKET)
 			{
 				this->m_CurrentConnections++;
 				printf("New client. Current connections %d/%d\n", this->m_CurrentConnections, this->m_MaxConnections);
