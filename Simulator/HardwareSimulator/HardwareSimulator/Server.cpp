@@ -121,11 +121,11 @@ void Server::ListenerBackground()
 	{
 		if (this->m_CurrentConnections < this->m_MaxConnections)
 		{
-			struct sockaddr clientaddr;
+			struct sockaddr_in clientaddr;
 			int addrlen;
 			SOCKET client;
 
-			client = accept(this->m_Socket, NULL, NULL);
+			client = accept(this->m_Socket, (struct sockaddr*)&clientaddr, &addrlen);
 			if (client != INVALID_SOCKET)
 			{
 				this->m_CurrentConnections++;
