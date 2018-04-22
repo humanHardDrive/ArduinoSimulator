@@ -8,7 +8,7 @@
 int main(int argc, char** argv)
 {
 	//Connection c("127.0.0.1", "8080");
-	Server s("127.0.0.1", "4040", 10);
+	Server s("127.0.0.1", "8080", 10);
 
 	/*if (c.start())
 	{
@@ -21,12 +21,8 @@ int main(int argc, char** argv)
 		c.stop();
 	}*/
 
-	if (s.start())
-	{
-		using namespace std::chrono_literals;
-		std::this_thread::sleep_for(100s);
-		s.stop();
-	}
+	s.start();
+	while (1);
 
 	return 0;
 }

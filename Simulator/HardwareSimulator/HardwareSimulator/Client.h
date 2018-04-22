@@ -18,14 +18,17 @@
 class Client
 {
 public:
+	Client();
 	Client(SOCKET sock);
-	Client(Client &&other);
 	~Client();
 
 	void disconnect();
 
+	void setSocket(SOCKET sock);
+	SOCKET socket();
+
 private:
-	void BackgroundRecv();
+	int BackgroundRecv();
 	void BackgroundSend();
 
 private:

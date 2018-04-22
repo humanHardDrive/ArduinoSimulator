@@ -56,7 +56,7 @@ bool Server::start()
 	// Create a SOCKET for connecting to server
 	this->m_Socket = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
 
-	if (!this->m_Socket)
+	if (this->m_Socket == INVALID_SOCKET)
 	{
 		printf("socket failed with error: %ld\n", WSAGetLastError());
 		freeaddrinfo(result);
@@ -69,7 +69,8 @@ bool Server::start()
 	u_long iMode = 1;
 	iResult = ioctlsocket(this->m_Socket, FIONBIO, &iMode);
 
-	if (iResult < 0) {
+	if (iResult == SOCKET_ERROR) 
+	{
 		printf("ioctlsocket failed with error: %d\n", WSAGetLastError());
 		closesocket(this->m_Socket);
 		WSACleanup();
@@ -80,7 +81,7 @@ bool Server::start()
 	// Setup the TCP listening socket
 	iResult = bind(this->m_Socket, result->ai_addr, (int)result->ai_addrlen);
 
-	if (iResult < 0)
+	if (iResult == SOCKET_ERROR)
 	{
 		printf("bind failed with error: %d\n", WSAGetLastError());
 		freeaddrinfo(result);
@@ -94,7 +95,7 @@ bool Server::start()
 	freeaddrinfo(result);
 
 	// start listening for new clients attempting to connect
-	iResult = listen(this->m_Socket, SOMAXCONN);
+	iResult = listen(this->m_Socket, 16);
 
 	if (iResult < 0)
 	{
@@ -105,6 +106,7 @@ bool Server::start()
 		return false;
 	}
 
+	this->m_StopServer = false;
 	m_BackgroundAcceptThread = std::thread(&Server::ListenerBackground, this);
 
 	return true;
@@ -117,18 +119,16 @@ void Server::stop()
 
 void Server::ListenerBackground()
 {
-	while (this->m_Client == INVALID_SOCKET)
+	while (!this->m_StopServer)
 	{
-		if (this->m_Client != INVALID_SOCKET)
+		if (this->m_Client.socket() == INVALID_SOCKET)
 		{
-			struct sockaddr_in clientaddr;
-			int addrlen;
 			SOCKET client;
 
-			client = accept(this->m_Socket, (struct sockaddr*)&clientaddr, &addrlen);
+			client = accept(this->m_Socket, NULL, NULL);
 			if (client != INVALID_SOCKET)
 			{
-				this->m_Client = client;
+				this->m_Client.setSocket(client);
 				printf("New client.\n");
 			}
 		}

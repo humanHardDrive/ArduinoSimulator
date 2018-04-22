@@ -25,7 +25,7 @@ int main(int argc, char** argv)
 	connected = c.start();
 
 	//setup();
-	while (!stopRunning)
+	while (connected && !stopRunning)
 	{
 		if (connected)
 			c.write("HELLO WORLD");
