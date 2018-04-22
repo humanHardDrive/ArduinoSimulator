@@ -36,7 +36,7 @@ private:
 	unsigned int m_MaxConnections;
 	unsigned int m_CurrentConnections;
 
-	std::vector<Client> m_Client;
+	Client m_Client;
 
 	std::string m_IP, m_Port;
 

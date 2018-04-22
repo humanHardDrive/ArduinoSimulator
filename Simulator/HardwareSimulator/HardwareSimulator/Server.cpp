@@ -117,9 +117,9 @@ void Server::stop()
 
 void Server::ListenerBackground()
 {
-	while (!m_StopServer)
+	while (this->m_Client == INVALID_SOCKET)
 	{
-		if (this->m_CurrentConnections < this->m_MaxConnections)
+		if (this->m_Client != INVALID_SOCKET)
 		{
 			struct sockaddr_in clientaddr;
 			int addrlen;
@@ -128,8 +128,8 @@ void Server::ListenerBackground()
 			client = accept(this->m_Socket, (struct sockaddr*)&clientaddr, &addrlen);
 			if (client != INVALID_SOCKET)
 			{
-				this->m_CurrentConnections++;
-				printf("New client. Current connections %d/%d\n", this->m_CurrentConnections, this->m_MaxConnections);
+				this->m_Client = client;
+				printf("New client.\n");
 			}
 		}
 	}
