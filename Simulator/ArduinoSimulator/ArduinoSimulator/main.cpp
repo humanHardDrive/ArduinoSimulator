@@ -36,8 +36,10 @@ int main(int argc, char** argv)
 		c.write("HELLO WORLD");
 
 	//setup();
-	while (connected && !stopRunning)
+	while (!c.isDisconnected());
 	{
+		if (c.isDisconnected())
+			c.stop();
 		//loop();
 	}
 

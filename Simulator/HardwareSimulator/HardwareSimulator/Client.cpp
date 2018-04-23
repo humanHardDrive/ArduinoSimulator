@@ -93,6 +93,8 @@ int Client::BackgroundRecv()
 		}
 		else if (WSAGetLastError() != WSAEWOULDBLOCK)
 			this->m_Disconnected = true;
+
+		std::this_thread::yield();
 	}
 
 	return 0;
@@ -113,6 +115,8 @@ int Client::BackgroundSend()
 		}
 
 		this->m_QLock.unlock();
+
+		std::this_thread::yield();
 	}
 
 	return 0;

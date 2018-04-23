@@ -27,6 +27,8 @@ public:
 
 	void SetMsgHandler(void(*MsgHandler)(char* msg, size_t size, Connection* c));
 
+	bool isDisconnected();
+
 private:
 	void ConnectionSendBackground();
 	void ConnectionRecvBackground();
@@ -39,6 +41,7 @@ private:
 	void(*m_MsgHandler)(char* msg, size_t size, Connection* c);
 
 	bool m_StopConnection;
+	bool m_Disconnected;
 
 	std::string m_IP, m_Port;
 	std::queue<std::string> m_MsgQ;
