@@ -1,41 +1,16 @@
 #include "Simulator.h"
 
-PIN_MODE l_CurrentPinMode[PIN_COUNT];
-PIN_STATE l_CurrentPinState[PIN_COUNT];
-
-unsigned int l_SystemMilliSecClk = 0;
-
-void pinMode(uint8_t pin, PIN_MODE mode)
+void SetupRegisterFile()
 {
-	l_CurrentPinMode[pin] = mode;
-}
+	Register8 DDRB(0x00);
+	Register8 DDRC(0x00);
+	Register8 DDRD(0x00);
 
+	Register8 PORTB(0x00);
+	Register8 PORTC(0x00);
+	Register8 PORTD(0x00);
 
-PIN_STATE digitalRead(uint8_t pin)
-{
-	return l_CurrentPinState[pin];
-}
-
-void digitalWrite(uint8_t pin, PIN_STATE state)
-{
-	l_CurrentPinState[pin] = state;
-}
-
-
-DWORD WINAPI IncrementSystemMilliSecsClk(LPVOID lpParam)
-{
-	l_SystemMilliSecClk++;
-	return 0;
-}
-
-unsigned int millis()
-{
-	return l_SystemMilliSecClk;
-}
-
-void delay(unsigned int ms)
-{
-	unsigned int CurrentTime = millis();
-
-	while ((CurrentTime + ms) > millis());
+	Register8 PINB(0x00);
+	Register8 PINC(0x00);
+	Register8 PIND(0x00);
 }

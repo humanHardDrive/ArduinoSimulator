@@ -1,8 +1,7 @@
 #include <iostream>
 #include <cstdlib>
 
-//#include "Simulator.h"
-//#include "Logging.h"
+#include "Simulator.h"
 
 #include "Connection.h"
 
@@ -19,28 +18,19 @@ void msghandler(char* msg, size_t size, Connection* c)
 
 int main(int argc, char** argv)
 {
-	HANDLE SystemMilliSecClkInterrupt;
-	bool stopRunning = false;
-	bool connected = false;
-
 	std::cout << "Arduino Simulator v" << VERSION_MAJOR << "." << VERSION_MINOR << std::endl;
-	//DISPLAY_LOG(LVL_INFO, "Logging Started. Execution Started");
-
-	//SystemMilliSecClkInterrupt = CreateThread(NULL, 0, IncrementSystemMilliSecsClk, NULL, 0, NULL);
 
 	Connection c("127.0.0.1", "4040");
-	connected = c.start();
 	c.SetMsgHandler(msghandler);
 
-	if (connected)
-		c.write("HELLO WORLD");
+	SetupRegisterFile();
 
-	//setup();
+	setup();
 	while (!c.isDisconnected());
 	{
 		if (c.isDisconnected())
 			c.stop();
-		//loop();
+		loop();
 	}
 
 	c.stop();
