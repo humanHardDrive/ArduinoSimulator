@@ -13,3 +13,7 @@ Simulator/ArduinoSimulator/.vs/ArduinoSimulator/v15/.suo
 Simulator/HardwareSimulator/Debug/HardwareSimulator.exe
 *.ilk
 *.exe
+<<<<<<< HEAD
+=======
+*.exe
+>>>>>>> Task_ConnectArduinoToHardwareSim

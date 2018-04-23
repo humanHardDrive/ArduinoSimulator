@@ -3,12 +3,23 @@
 #include <chrono>
 
 #include "Connection.h"
+#include "Server.h"
+
+static void msghandler(char* msg, size_t size, Client* c)
+{
+	std::string smsg(msg, size);
+
+	printf("%d says: %s\n", c->socket(), smsg.c_str());
+	c->write(smsg);
+}
 
 int main(int argc, char** argv)
 {
-	Connection c("127.0.0.1", "8080");
+	//Connection c("127.0.0.1", "8080");
+	Server s("127.0.0.1", "4040", 10);
+	s.SetMsgHandler(msghandler);
 
-	if (c.start())
+	/*if (c.start())
 	{
 		for (int i = 0; i < 10; i++)
 		{
@@ -17,7 +28,10 @@ int main(int argc, char** argv)
 			std::this_thread::sleep_for(2s);
 		}
 		c.stop();
-	}
+	}*/
+
+	s.start();
+	while (1);
 
 	return 0;
 }
