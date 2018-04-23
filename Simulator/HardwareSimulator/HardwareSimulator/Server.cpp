@@ -115,6 +115,14 @@ bool Server::start()
 void Server::stop()
 {
 	this->m_StopServer = true;
+
+	if (this->m_Client.socket() != INVALID_SOCKET)
+		this->m_Client.disconnect();
+}
+
+void Server::SetMsgHandler(void(*MsgHandler)(char* msg, size_t size, Client* c))
+{
+	this->m_Client.SetMsgHandler(MsgHandler);
 }
 
 void Server::ListenerBackground()
@@ -132,5 +140,7 @@ void Server::ListenerBackground()
 				printf("New client.\n");
 			}
 		}
+		else if(this->m_Client.isDisconnected())
+			this->m_Client.disconnect();
 	}
 }

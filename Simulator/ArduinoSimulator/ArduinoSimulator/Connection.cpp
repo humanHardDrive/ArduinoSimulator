@@ -107,9 +107,6 @@ void Connection::stop()
 {
 	this->m_StopConnection = true;
 	shutdown(this->ConnectionSocket, SD_BOTH);
-
-	this->m_BackgroundRecvThread.join();
-	this->m_BackgroundSendThread.join();
 }
 
 void Connection::write(std::string msg)
@@ -119,7 +116,7 @@ void Connection::write(std::string msg)
 	this->m_QLock.unlock();
 }
 
-void Connection::SetMsgHandler(void(*MsgHandler)(std::string msg))
+void Connection::SetMsgHandler(void(*MsgHandler)(char* msg, size_t size, Connection* c))
 {
 	this->m_MsgHandler = MsgHandler;
 }
@@ -154,7 +151,10 @@ void Connection::ConnectionRecvBackground()
 		bytesRead = recv(this->ConnectionSocket, buffer, 1024, 0);
 
 		if (bytesRead > 0)
-			printf("Read %s\n", buffer);
+		{
+			if (this->m_MsgHandler)
+				this->m_MsgHandler(buffer, bytesRead, this);
+		}
 		else if (WSAGetLastError() != WSAEWOULDBLOCK)
 			this->stop();
 

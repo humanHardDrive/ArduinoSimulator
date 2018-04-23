@@ -7,6 +7,7 @@
 #include "Client.h"
 
 #include <thread>
+#include <mutex>
 
 #include <string>
 #include <queue>
@@ -27,14 +28,25 @@ public:
 	void setSocket(SOCKET sock);
 	SOCKET socket();
 
+	void SetMsgHandler(void(*MsgHandler)(char* msg, size_t size, Client* c));
+	void write(std::string msg);
+
+	bool isDisconnected();
+
 private:
 	int BackgroundRecv();
-	void BackgroundSend();
+	int BackgroundSend();
 
 private:
 	SOCKET m_Socket;
 
 	bool m_Shutdown;
+	bool m_Disconnected;
+
+	void(*m_MsgHandler)(char* msg, size_t size, Client* c);
+
+	std::mutex m_QLock;
+	std::queue<std::string> m_MsgQ;
 
 	std::thread m_BackgroundRecvThread;
 	std::thread m_BackgroundSendThread;

@@ -26,6 +26,8 @@ public:
 	bool start();
 	void stop();
 
+	void SetMsgHandler(void(*MsgHandler)(char* msg, size_t size, Client* c));
+
 private:
 	void ListenerBackground();
 
@@ -39,7 +41,6 @@ private:
 	Client m_Client;
 
 	std::string m_IP, m_Port;
-
 	std::thread m_BackgroundAcceptThread;
 };
 

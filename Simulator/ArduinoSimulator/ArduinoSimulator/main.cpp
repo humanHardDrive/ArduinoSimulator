@@ -9,6 +9,13 @@
 #define VERSION_MINOR	0
 #define VERSION_MAJOR	0
 
+void msghandler(char* msg, size_t size, Connection* c)
+{
+	std::string smsg(msg, size);
+
+	printf("Connection says %s\n", smsg.c_str());
+	c->write(smsg);
+}
 
 int main(int argc, char** argv)
 {
@@ -23,15 +30,15 @@ int main(int argc, char** argv)
 
 	Connection c("127.0.0.1", "4040");
 	connected = c.start();
+	c.SetMsgHandler(msghandler);
+
+	if (connected)
+		c.write("HELLO WORLD");
 
 	//setup();
 	while (connected && !stopRunning)
 	{
-		if (connected)
-			c.write("HELLO WORLD");
-
 		//loop();
-		stopRunning = true;
 	}
 
 	c.stop();
