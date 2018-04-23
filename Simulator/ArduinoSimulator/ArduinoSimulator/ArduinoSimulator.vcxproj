@@ -118,17 +118,17 @@
     <ClCompile Include="Connection.cpp" />
     <ClCompile Include="Logging.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Serial.cpp" />
+    <ClCompile Include="Register16.cpp" />
+    <ClCompile Include="Register8.cpp" />
     <ClCompile Include="Simulator.cpp" />
-    <ClCompile Include="SPI.cpp" />
     <ClCompile Include="TestFile.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Connection.h" />
     <ClInclude Include="Logging.h" />
-    <ClInclude Include="Serial.h" />
+    <ClInclude Include="Register16.h" />
+    <ClInclude Include="Register8.h" />
     <ClInclude Include="Simulator.h" />
-    <ClInclude Include="SPI.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
