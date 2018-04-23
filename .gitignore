@@ -12,3 +12,4 @@ Simulator/ArduinoSimulator/.vs/ArduinoSimulator/v15/.suo
 *.suo
 Simulator/HardwareSimulator/Debug/HardwareSimulator.exe
 *.ilk
+*.exe
