@@ -25,6 +25,10 @@
     <ClCompile Include="Server.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\rapidxml\rapidxml.hpp" />
+    <ClInclude Include="..\rapidxml\rapidxml_iterators.hpp" />
+    <ClInclude Include="..\rapidxml\rapidxml_print.hpp" />
+    <ClInclude Include="..\rapidxml\rapidxml_utils.hpp" />
     <ClInclude Include="Client.h" />
     <ClInclude Include="Connection.h" />
     <ClInclude Include="Server.h" />
@@ -84,7 +88,7 @@
     <IncludePath>$(ProjectDir)..\SerialMonitor\;$(ProjectDir)..\GenericHardware\;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>C:\Python27\include;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Users\Sam\Documents\GitHub\ArduinoSimulator\Simulator\HardwareSimulator\rapidxml;C:\Python27\include;$(IncludePath)</IncludePath>
     <LibraryPath>C:\Python27\libs;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">

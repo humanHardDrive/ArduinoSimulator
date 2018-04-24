@@ -1,6 +1,7 @@
 #include <iostream>
 #include <thread>
-#include <chrono>
+
+#include "rapidxml.hpp"
 
 #include "Connection.h"
 #include "Server.h"
@@ -23,6 +24,8 @@ int main(int argc, char** argv)
 
 	Arduino0.start();
 	while (1);
+
+	Py_Finalize();
 
 	return 0;
 }
