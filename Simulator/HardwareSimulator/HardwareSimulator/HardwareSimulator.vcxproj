@@ -84,7 +84,8 @@
     <IncludePath>$(ProjectDir)..\SerialMonitor\;$(ProjectDir)..\GenericHardware\;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>$(ProjectDir)..\SerialMonitor\;$(ProjectDir)..\GenericHardware\;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Python27\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Python27\libs;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
