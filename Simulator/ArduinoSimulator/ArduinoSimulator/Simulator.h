@@ -2,6 +2,8 @@
 #include "Register16.h"
 #include "Register8.h"
 
+#include "Connection.h"
+
 extern Register8 DDRB;
 extern Register8 DDRC;
 extern Register8 DDRD;
@@ -18,4 +20,6 @@ extern Register8 PIND;
 void setup();
 void loop();
 
-void SetupRegisterFile();
+void SetupHardwareSimConnection(std::string ip, std::string port);
+
+void SetupRegisterChangeEvents();

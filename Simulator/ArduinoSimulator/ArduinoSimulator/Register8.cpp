@@ -1,8 +1,11 @@
 #include "Register8.h"
 
-Register8::Register8(uint8_t ResetValue)
+Register8::Register8(std::string name, uint8_t ResetValue, bool readonly)
 {
 	this->value = ResetValue;
+	this->name = name;
+	this->readonly = readonly;
+
 	this->m_OnChange = NULL;
 }
 
@@ -14,14 +17,17 @@ void Register8::SetOnChange(void(*OnChange)(Register8 *reg))
 	this->m_OnChange = OnChange;
 }
 
-Register8 & Register8::operator=(const uint8_t & v)
+Register8& Register8::operator=(const uint8_t & v)
 {
-	if (this->value != v)
+	if (!this->readonly)
 	{
-		this->value = v;
+		if (this->value != v)
+		{
+			this->value = v;
 
-		if (this->m_OnChange)
-			this->m_OnChange(this);
+			if (this->m_OnChange)
+				this->m_OnChange(this);
+		}
 	}
 
 	return *this;
@@ -47,10 +53,19 @@ uint8_t Register8::operator~()
 	return ~this->value;
 }
 
-Register8 & Register8::operator^=(const uint8_t rhs)
+Register8& Register8::operator^=(const uint8_t rhs)
 {
-	this->value ^= rhs;
-	return *this;
+	return this->operator=(this->value ^ rhs);
+}
+
+Register8& Register8::operator|=(const uint8_t rhs)
+{
+	return this->operator=(this->value | rhs);
+}
+
+Register8& Register8::operator&=(const uint8_t rhs)
+{
+	return this->operator=(this->value & rhs);
 }
 
 bool Register8::operator!()

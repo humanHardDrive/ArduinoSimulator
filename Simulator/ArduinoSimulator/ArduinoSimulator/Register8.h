@@ -1,10 +1,11 @@
 #pragma once
 #include <cstdint>
+#include <string>
 
 class Register8
 {
 	public:
-		Register8(uint8_t ResetValue);
+		Register8(std::string name, uint8_t ResetValue, bool readonly);
 		~Register8();
 
 		Register8& operator=(const uint8_t& v);
@@ -14,6 +15,8 @@ class Register8
 		uint8_t operator~();
 
 		Register8& operator^=(const uint8_t rhs);
+		Register8& operator|=(const uint8_t rhs);
+		Register8& operator&=(const uint8_t rhs);
 
 		bool operator!();
 		bool operator&&(const Register8& rhs);
@@ -24,7 +27,9 @@ class Register8
 	private:
 		void(*m_OnChange)(Register8* reg);
 
-	private:
+	public:
 		uint8_t value;
+		std::string name;
+		bool readonly;
 };
 

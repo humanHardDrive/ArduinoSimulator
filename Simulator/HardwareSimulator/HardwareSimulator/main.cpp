@@ -10,7 +10,6 @@ static void msghandler(char* msg, size_t size, Client* c)
 	std::string smsg(msg, size);
 
 	printf("%d says: %s\n", c->socket(), smsg.c_str());
-	c->write(smsg);
 }
 
 int main(int argc, char** argv)

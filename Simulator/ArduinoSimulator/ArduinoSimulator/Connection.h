@@ -19,6 +19,7 @@ class Connection
 {
 public:
 	Connection(std::string ip, std::string port);
+	Connection();
 	~Connection();
 
 	bool start();

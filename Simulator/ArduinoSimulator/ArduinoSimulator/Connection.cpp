@@ -1,5 +1,16 @@
 #include "Connection.h"
 
+Connection::Connection()
+{
+	this->m_IP = "";
+	this->m_Port = "";
+
+	this->m_MsgHandler = NULL;
+
+	this->m_StopConnection = false;
+	this->m_Disconnected = true;
+}
+
 Connection::Connection(std::string ip, std::string port)
 {
 	this->m_IP = ip;
