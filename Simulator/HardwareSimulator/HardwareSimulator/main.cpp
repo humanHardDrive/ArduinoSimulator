@@ -1,8 +1,6 @@
 #include <iostream>
 #include <thread>
 
-#include "rapidxml.hpp"
-
 #include "Connection.h"
 #include "Server.h"
 

@@ -20,7 +20,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Client.cpp" />
+    <ClCompile Include="Component.cpp" />
+    <ClCompile Include="ComponentManager.cpp" />
     <ClCompile Include="Connection.cpp" />
+    <ClCompile Include="GenericHardware.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Server.cpp" />
   </ItemGroup>
@@ -30,7 +33,10 @@
     <ClInclude Include="..\rapidxml\rapidxml_print.hpp" />
     <ClInclude Include="..\rapidxml\rapidxml_utils.hpp" />
     <ClInclude Include="Client.h" />
+    <ClInclude Include="Component.h" />
+    <ClInclude Include="ComponentManager.h" />
     <ClInclude Include="Connection.h" />
+    <ClInclude Include="GenericHardware.h" />
     <ClInclude Include="Server.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
