@@ -12,11 +12,12 @@ class ComponentManager
 		ComponentManager();
 		~ComponentManager();
 
-		void BuildComponentList(std::string path);
+		int BuildComponentList(std::string path);
 
 		void AddComponent(Component& c);
 
 	private:
 		std::map<std::string, Component> m_ComponentMap;
+		std::string m_XMLData; //this needs to be kept for rapidxml
 };
 
