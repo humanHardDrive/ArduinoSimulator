@@ -4,7 +4,7 @@
 
 #include "rapidxml.hpp"
 
-#include "Component.h"
+#include "GenericHardware.h"
 
 class ComponentManager
 {
@@ -14,10 +14,13 @@ class ComponentManager
 
 		int BuildComponentList(std::string path);
 
-		void AddComponent(Component& c);
+		void AddComponent(GenericHardware& c);
+		GenericHardware& BuildHardware(std::string path, std::string component);
 
 	private:
-		std::map<std::string, Component> m_ComponentMap;
+		std::string m_ResourcePath;
+
+		std::map<std::string, GenericHardware> m_ComponentMap;
 		std::string m_XMLData; //this needs to be kept for rapidxml
 };
 

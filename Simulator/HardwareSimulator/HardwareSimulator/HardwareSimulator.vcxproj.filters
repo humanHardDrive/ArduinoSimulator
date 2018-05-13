@@ -33,9 +33,6 @@
     <ClCompile Include="GenericHardware.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Component.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ComponentManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -63,9 +60,6 @@
       <Filter>rapidxml</Filter>
     </ClInclude>
     <ClInclude Include="GenericHardware.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Component.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ComponentManager.h">

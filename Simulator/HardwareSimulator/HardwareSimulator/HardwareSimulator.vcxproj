@@ -20,7 +20,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Client.cpp" />
-    <ClCompile Include="Component.cpp" />
     <ClCompile Include="ComponentManager.cpp" />
     <ClCompile Include="Connection.cpp" />
     <ClCompile Include="GenericHardware.cpp" />
@@ -33,7 +32,6 @@
     <ClInclude Include="..\rapidxml\rapidxml_print.hpp" />
     <ClInclude Include="..\rapidxml\rapidxml_utils.hpp" />
     <ClInclude Include="Client.h" />
-    <ClInclude Include="Component.h" />
     <ClInclude Include="ComponentManager.h" />
     <ClInclude Include="Connection.h" />
     <ClInclude Include="GenericHardware.h" />
@@ -91,7 +89,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>$(ProjectDir)..\SerialMonitor\;$(ProjectDir)..\GenericHardware\;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Users\Sam\Documents\GitHub\ArduinoSimulator\Simulator\HardwareSimulator\rapidxml;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <IncludePath>C:\Users\Sam\Documents\GitHub\ArduinoSimulator\Simulator\HardwareSimulator\rapidxml;C:\Python27\include;$(IncludePath)</IncludePath>

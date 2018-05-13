@@ -10,7 +10,7 @@
 
 #include "ComponentManager.h"
 
-#include "Python.h"
+//#include "Python.h"
 
 static void msghandler(char* msg, size_t size, Client* c)
 {
@@ -32,14 +32,14 @@ int main(int argc, char** argv)
 	respath.append("\\..\\..\\..\\resources");
 	ComponentManager cManager;
 
-	Py_Initialize();
+	//Py_Initialize();
 
 	cManager.BuildComponentList(respath);
 
 	Arduino0.start();
 	while (1);
 
-	Py_Finalize();
+	//Py_Finalize();
 
 	return 0;
 }

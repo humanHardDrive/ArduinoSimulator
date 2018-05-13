@@ -17,7 +17,7 @@ ComponentManager::~ComponentManager()
 
 int ComponentManager::BuildComponentList(std::string path)
 {
-	int ComponentCount = -1;
+	int ComponentCount = 0;
 	std::string SearchPath(path);
 	WIN32_FIND_DATA data;
 	HANDLE file;
@@ -30,7 +30,11 @@ int ComponentManager::BuildComponentList(std::string path)
 		{
 			if (strstr(data.cFileName, ".xml"))
 			{
-				std::cout << data.cFileName << std::endl;
+				std::string ComponentName(data.cFileName);
+				ComponentName = ComponentName.substr(0, ComponentName.find_last_of("."));
+
+				AddComponent(BuildHardware(path, ComponentName));
+				ComponentCount++;
 			}
 		} while (FindNextFile(file, &data) != 0);
 	}
@@ -39,7 +43,24 @@ int ComponentManager::BuildComponentList(std::string path)
 }
 
 
-void ComponentManager::AddComponent(Component& c)
+void ComponentManager::AddComponent(GenericHardware& c)
 {
-	m_ComponentMap[c.GetName()] = c;
+	m_ComponentMap[c.GetComponent()] = c;
+}
+
+GenericHardware& ComponentManager::BuildHardware(std::string path, std::string component)
+{
+	std::string CatPath = path.append("\\");
+	CatPath.append(component);
+	CatPath.append(".xml");
+	GenericHardware Hardware;
+
+	std::ifstream ComponentRes(CatPath);
+
+	if (ComponentRes.is_open())
+	{
+		std::cout << "File open" << std::endl;
+	}
+
+	return Hardware;
 }

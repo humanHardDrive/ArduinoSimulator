@@ -1,4 +1,6 @@
 #pragma once
+#include "Arduino.h"
+
 #include "Register16.h"
 #include "Register8.h"
 

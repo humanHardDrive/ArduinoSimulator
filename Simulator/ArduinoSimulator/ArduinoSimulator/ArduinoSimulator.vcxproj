@@ -69,7 +69,12 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IncludePath>C:\Program Files %28x86%29\Arduino\hardware\arduino\avr\cores\arduino;C:\Users\Sam\Documents\GitHub\ArduinoSimulator\Simulator\ArduinoSimulator\ArduinoSimulator\avr;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <IncludePath>C:\Program Files %28x86%29\Arduino\hardware\arduino\avr\cores\arduino;C:\Users\Sam\Documents\GitHub\ArduinoSimulator\Simulator\ArduinoSimulator\ArduinoSimulator\avr;$(IncludePath)</IncludePath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>

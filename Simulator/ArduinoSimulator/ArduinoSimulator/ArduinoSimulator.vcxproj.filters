@@ -13,6 +13,12 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Arduino Header">
+      <UniqueIdentifier>{1ceec1b9-f1f1-4551-9567-d726005c6d59}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Arduino Source">
+      <UniqueIdentifier>{6521fedd-64df-4d57-974b-afcd4b67701e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
