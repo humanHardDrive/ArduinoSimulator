@@ -8,6 +8,7 @@ Connection::Connection(std::string ip, std::string port)
 	this->m_MsgHandler = NULL;
 
 	this->m_StopConnection = false;
+	this->m_Disconnected = true;
 }
 
 Connection::~Connection()
@@ -97,6 +98,7 @@ bool Connection::start()
 		return false;
 	}
 
+	this->m_Disconnected = false;
 	m_BackgroundSendThread = std::thread(&Connection::ConnectionSendBackground, this);
 	m_BackgroundRecvThread = std::thread(&Connection::ConnectionRecvBackground, this);
 
@@ -108,8 +110,14 @@ void Connection::stop()
 	this->m_StopConnection = true;
 	shutdown(this->ConnectionSocket, SD_BOTH);
 
-	this->m_BackgroundRecvThread.join();
-	this->m_BackgroundSendThread.join();
+	if (this->m_BackgroundRecvThread.joinable())
+		this->m_BackgroundRecvThread.join();
+
+	if (this->m_BackgroundSendThread.joinable())
+		this->m_BackgroundSendThread.join();
+
+	closesocket(this->ConnectionSocket);
+	this->ConnectionSocket = INVALID_SOCKET;
 }
 
 void Connection::write(std::string msg)
@@ -119,9 +127,14 @@ void Connection::write(std::string msg)
 	this->m_QLock.unlock();
 }
 
-void Connection::SetMsgHandler(void(*MsgHandler)(std::string msg))
+void Connection::SetMsgHandler(void(*MsgHandler)(char* msg, size_t size, Connection* c))
 {
 	this->m_MsgHandler = MsgHandler;
+}
+
+bool Connection::isDisconnected()
+{
+	return this->m_Disconnected;
 }
 
 void Connection::ConnectionSendBackground()
@@ -154,9 +167,12 @@ void Connection::ConnectionRecvBackground()
 		bytesRead = recv(this->ConnectionSocket, buffer, 1024, 0);
 
 		if (bytesRead > 0)
-			printf("Read %s\n", buffer);
+		{
+			if (this->m_MsgHandler)
+				this->m_MsgHandler(buffer, bytesRead, this);
+		}
 		else if (WSAGetLastError() != WSAEWOULDBLOCK)
-			this->stop();
+			this->m_Disconnected = true;
 
 		std::this_thread::yield();
 	}

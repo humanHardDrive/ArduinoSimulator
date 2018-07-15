@@ -5,10 +5,19 @@
 #include "Connection.h"
 #include "Server.h"
 
+static void msghandler(char* msg, size_t size, Client* c)
+{
+	std::string smsg(msg, size);
+
+	printf("%d says: %s\n", c->socket(), smsg.c_str());
+	c->write(smsg);
+}
+
 int main(int argc, char** argv)
 {
 	//Connection c("127.0.0.1", "8080");
 	Server s("127.0.0.1", "4040", 10);
+	s.SetMsgHandler(msghandler);
 
 	/*if (c.start())
 	{
@@ -21,12 +30,8 @@ int main(int argc, char** argv)
 		c.stop();
 	}*/
 
-	if (s.start())
-	{
-		using namespace std::chrono_literals;
-		std::this_thread::sleep_for(100s);
-		s.stop();
-	}
+	s.start();
+	while (1);
 
 	return 0;
 }
