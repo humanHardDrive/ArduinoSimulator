@@ -130,6 +130,8 @@ void Server::ListenerBackground()
 			{
 				this->m_CurrentConnections++;
 				printf("New client. Current connections %d/%d\n", this->m_CurrentConnections, this->m_MaxConnections);
+
+				this->m_Client.emplace_back(client);
 			}
 		}
 	}

@@ -9,6 +9,10 @@ Client::Client(SOCKET sock)
 	this->m_BackgroundSendThread = std::thread(&Client::BackgroundSend, this);
 }
 
+Client::Client(const Client& other)
+{
+}
+
 Client::~Client()
 {
 }

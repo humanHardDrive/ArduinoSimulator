@@ -19,8 +19,10 @@ class Client
 {
 public:
 	Client(SOCKET sock);
-	Client(Client &&other);
+	Client(const Client &other);
 	~Client();
+
+	Client& operator=(const Client& other) = default;
 
 	void disconnect();
 
