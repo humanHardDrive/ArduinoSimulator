@@ -38,6 +38,7 @@ void l_FMULSU(uint8_t rd, uint8_t rr)
 	std::cout << "FMULSU" << std::endl;
 }
 
+
 //2-operand instructions
 void l_CP(uint8_t rd, uint8_t rr)
 {
@@ -99,6 +100,28 @@ void l_CPI(uint8_t rd, uint8_t k)
 	std::cout << "CPI" << std::endl;
 }
 
+
+//Register-immediate operations
+void l_SUBI(uint8_t rd, uint8_t k)
+{
+	std::cout << "SUBI" << std::endl;
+}
+
+void l_SBCI(uint8_t rd, uint8_t k)
+{
+	std::cout << "SUBC" << std::endl;
+}
+
+void l_ORI(uint8_t rd, uint8_t k)
+{
+	std::cout << "ORI" << std::endl;
+}
+
+void l_ANDI(uint8_t rd, uint8_t k)
+{
+	std::cout << "ANDI" << std::endl;
+}
+
 /*
  *The opcodes for this method were found here:
  *https://en.wikipedia.org/wiki/Atmel_AVR_instruction_set
@@ -111,6 +134,8 @@ bool ParseInstruction(uint16_t inst)
 	uint8_t instcode = ((uint8_t*)(&inst))[1];
 	uint8_t opcode = instcode;
 
+	uint8_t srcreg, destreg, constant;
+
 	//Get the 2 most significant bits
 	instcode = (instcode & 0xC0) >> 6;
 
@@ -121,15 +146,25 @@ bool ParseInstruction(uint16_t inst)
 			{
 				//2 operand instructions
 				opcode = (opcode & 0x3C) >> 2;
+
+				srcreg = ((uint8_t*)(&inst))[0] & 0x0F;
+				srcreg |= (((uint8_t*)(&inst))[1] & 0x02) << 3;
+
+				destreg = ((uint8_t*)(&inst))[0] & 0xF0;
+				destreg |= (((uint8_t*)(&inst))[1] & 0x01) << 4;
+
+				constant = ((uint8_t*)(&inst))[0] & 0x0F;
+				constant |= (((uint8_t*)(&inst))[1] & 0x0F) << 4;
+
 				switch(opcode)
 				{
 					case 1:
-						l_CPC(0, 0);
+						l_CPC(destreg, srcreg);
 						return true;
 						break;
 
 					case 2:
-						l_SBC(0, 0);
+						l_SBC(destreg, srcreg);
 						return true;
 						break;
 
@@ -138,47 +173,47 @@ bool ParseInstruction(uint16_t inst)
 					//According to the Wiki, there would be a collision between this instruction
 					//and the SBC instruction
 					case 3:
-						l_ADD(0, 0);
+						l_ADD(destreg, srcreg);
 						return true;
 						break;
 
 					case 4:
-						l_CPSE(0, 0);
+						l_CPSE(destreg, srcreg);
 						return true;
 						break;
 
 					case 5:
-						l_CP(0, 0);
+						l_CP(destreg, srcreg);
 						return true;
 						break;
 
 					case 6:
-						l_SUB(0,0);
+						l_SUB(destreg, srcreg);
 						return true;
 						break;
 
 					case 7:
-						l_ADC(0,0);
+						l_ADC(destreg, srcreg);
 						return true;
 						break;
 
 					case 8:
-						l_AND(0, 0);
+						l_AND(destreg, srcreg);
 						return true;
 						break;
 
 					case 9:
-						l_EOR(0, 0);
+						l_EOR(destreg, srcreg);
 						return true;
 						break;
 
 					case 10:
-						l_OR(0, 0);
+						l_OR(destreg, srcreg);
 						return true;
 						break;
 
 					case 11:
-						l_MOV(0,0);
+						l_MOV(destreg, srcreg);
 						return true;
 						break;
 
@@ -188,7 +223,7 @@ bool ParseInstruction(uint16_t inst)
 					case 13:
 					case 14:
 					case 15:
-						l_CPI(0, 0);
+						l_CPI(destreg, constant);
 						return true;
 						break;
 
@@ -240,11 +275,46 @@ bool ParseInstruction(uint16_t inst)
 							l_FMULSU(0,0);
 						return true;
 						break;
+
+					default:
+						std::cout << "UNKOWN " << inst << std::endl;
+						return false;
+						break;
 				}
 			}
 			break;
 
 		case 1:
+			//Register-immediate operations
+			opcode = (opcode & 0x30) >> 4;
+
+			switch(opcode)
+			{
+				case 0:
+					l_SBCI(0,0);
+					return true;
+					break;
+
+				case 1:
+					l_SUBI(0,0);
+					return true;
+					break;
+
+				case 2:
+					l_ORI(0,0);
+					return true;
+					break;
+
+				case 3:
+					l_ANDI(0,0);
+					return true;
+					break;
+
+				default:
+					std::cout << "UNKOWN " << inst << std::endl;
+					return false;
+					break;
+			}
 			break;
 
 		case 2:
