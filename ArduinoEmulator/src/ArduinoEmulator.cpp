@@ -8,6 +8,36 @@ void l_NOP()
 	std::cout << "NOP" << std::endl;
 }
 
+void l_MOVW(uint8_t rd, uint8_t rr)
+{
+	std::cout << "MOVW" << std::endl;
+}
+
+void l_MULS(uint8_t rd, uint8_t rr)
+{
+	std::cout << "MULS" << std::endl;
+}
+
+void l_MULSU(uint8_t rd, uint8_t rr)
+{
+	std::cout << "MULSU" << std::endl;
+}
+
+void l_FMUL(uint8_t rd, uint8_t rr)
+{
+	std::cout << "FMUL" << std::endl;
+}
+
+void l_FMULS(uint8_t rd, uint8_t rr)
+{
+	std::cout << "FMULS" << std::endl;
+}
+
+void l_FMULSU(uint8_t rd, uint8_t rr)
+{
+	std::cout << "FMULSU" << std::endl;
+}
+
 //2-operand instructions
 void l_CP(uint8_t rd, uint8_t rr)
 {
@@ -78,15 +108,8 @@ void l_CPI(uint8_t rd, uint8_t k)
 */
 bool ParseInstruction(uint16_t inst)
 {
-	uint8_t instcode = ((uint8_t*)(&inst))[3];
+	uint8_t instcode = ((uint8_t*)(&inst))[1];
 	uint8_t opcode = instcode;
-
-	//Easy case
-	if(!inst)
-	{
-		l_NOP();
-		return true;
-	}
 
 	//Get the 2 most significant bits
 	instcode = (instcode & 0xC0) >> 6;
@@ -179,6 +202,45 @@ bool ParseInstruction(uint16_t inst)
 			{
 				//These instructions are weird and don't seem to belong
 				//to any set. Handle these later
+				opcode = (opcode & 0x03) << 1; //2 LSb of the MSB
+				opcode |= (((uint8_t*)(&inst))[0] & 0x80) >> 7; //And the MSb of the LSB
+
+				switch(opcode)
+				{
+					case 0:
+						l_NOP();
+						return true;
+						break;
+
+					case 1:
+					case 2:
+					case 3:
+						l_MOVW(0,0);
+						return true;
+						break;
+
+					case 4:
+					case 5:
+						l_MULS(0,0);
+						return true;
+						break;
+
+					case 6:
+						if(((uint8_t*)(&inst))[0] & 0x08)
+							l_FMUL(0,0);
+						else
+							l_MULSU(0,0);
+						return true;
+						break;
+
+					case 7:
+						if(((uint8_t*)(&inst))[0] & 0x08)
+							l_FMULS(0,0);
+						else
+							l_FMULSU(0,0);
+						return true;
+						break;
+				}
 			}
 			break;
 
