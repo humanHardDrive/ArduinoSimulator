@@ -493,7 +493,10 @@ void AddInstructionToMap(char* inst, unsigned char index, unsigned short opcode,
 		index++;
 	}
 
-	InstructionMap.insert(std::pair<uint16_t, InstructionHandler>(opcode, handler));
+	if(InstructionMap.find(opcode) == InstructionMap.end())
+		InstructionMap.insert(std::pair<uint16_t, InstructionHandler>(opcode, handler));
+	else
+		std::cout << "Collision " << opcode << std::endl;
 }
 
 /*
@@ -544,7 +547,7 @@ void BuildInstructionMap()
 	AddInstructionToMap((char*)"1001000xxxxx0100", 0, 0, l_LPM);
 	AddInstructionToMap((char*)"1001000xxxxx0110", 0, 0, l_ELPM);
 	AddInstructionToMap((char*)"1001000xxxxx0101", 0, 0, l_LPMPostInc);
-	AddInstructionToMap((char*)"1000100xxxxx0111", 0, 0, l_ELPMPostInc);
+	AddInstructionToMap((char*)"1001000xxxxx0111", 0, 0, l_ELPMPostInc);
 	AddInstructionToMap((char*)"1001001xxxxx0100", 0, 0, l_XCH);
 	AddInstructionToMap((char*)"1001001xxxxx0101", 0, 0, l_LAC);
 	AddInstructionToMap((char*)"1001001xxxxx0111", 0, 0, l_LAT);
