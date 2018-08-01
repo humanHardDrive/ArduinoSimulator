@@ -1,125 +1,499 @@
 #include <iostream>
 #include <cstdint>
+#include <cstring>
+#include <map>
+#include <functional>
 
-using namespace std;
+typedef void (*InstructionHandler)(uint16_t);
 
-void l_NOP()
+std::map<uint16_t, InstructionHandler> InstructionMap;
+
+void l_NOP(uint16_t inst)
 {
 	std::cout << "NOP" << std::endl;
 }
 
-void l_MOVW(uint8_t rd, uint8_t rr)
+void l_MOVW(uint16_t inst)
 {
 	std::cout << "MOVW" << std::endl;
 }
 
-void l_MULS(uint8_t rd, uint8_t rr)
+void l_MULS(uint16_t inst)
 {
 	std::cout << "MULS" << std::endl;
 }
 
-void l_MULSU(uint8_t rd, uint8_t rr)
+void l_MULSU(uint16_t inst)
 {
 	std::cout << "MULSU" << std::endl;
 }
 
-void l_FMUL(uint8_t rd, uint8_t rr)
+void l_FMUL(uint16_t inst)
 {
 	std::cout << "FMUL" << std::endl;
 }
 
-void l_FMULS(uint8_t rd, uint8_t rr)
+void l_FMULS(uint16_t inst)
 {
 	std::cout << "FMULS" << std::endl;
 }
 
-void l_FMULSU(uint8_t rd, uint8_t rr)
+void l_FMULSU(uint16_t inst)
 {
 	std::cout << "FMULSU" << std::endl;
 }
 
 
 //2-operand instructions
-void l_CP(uint8_t rd, uint8_t rr)
+void l_CP(uint16_t inst)
 {
 	std::cout << "CP" << std::endl;
 }
 
-void l_CPC(uint8_t rd, uint8_t rr)
+void l_CPC(uint16_t inst)
 {
 	std::cout << "CPC" << std::endl;
 }
 
-void l_SUB(uint8_t rd, uint8_t rr)
+void l_SUB(uint16_t inst)
 {
 	std::cout << "SUB" << std::endl;
 }
 
-void l_SBC(uint8_t rd, uint8_t rr)
+void l_SBC(uint16_t inst)
 {
 	std::cout << "SBC" << std::endl;
 }
 
-void l_ADD(uint8_t rd, uint8_t rr)
+void l_ADD(uint16_t inst)
 {
 	std::cout << "ADD" << std::endl;
 }
 
-void l_ADC(uint8_t rd, uint8_t rr)
+void l_ADC(uint16_t inst)
 {
 	std::cout << "ADC" << std::endl;
 }
 
-void l_CPSE(uint8_t rd, uint8_t rr)
+void l_CPSE(uint16_t inst)
 {
 	std::cout << "CPSE" << std::endl;
 }
 
-void l_AND(uint8_t rd, uint8_t rr)
+void l_AND(uint16_t inst)
 {
 	std::cout << "AND" << std::endl;
 }
 
-void l_EOR(uint8_t rd, uint8_t rr)
+void l_EOR(uint16_t inst)
 {
 	std::cout << "EOR" << std::endl;
 }
 
-void l_OR(uint8_t rd, uint8_t rr)
+void l_OR(uint16_t inst)
 {
 	std::cout << "OR" << std::endl;
 }
 
-void l_MOV(uint8_t rd, uint8_t rr)
+void l_MOV(uint16_t inst)
 {
 	std::cout << "MOV" << std::endl;
 }
 
-void l_CPI(uint8_t rd, uint8_t k)
+void l_CPI(uint16_t inst)
 {
 	std::cout << "CPI" << std::endl;
 }
 
 
 //Register-immediate operations
-void l_SUBI(uint8_t rd, uint8_t k)
+void l_SUBI(uint16_t inst)
 {
 	std::cout << "SUBI" << std::endl;
 }
 
-void l_SBCI(uint8_t rd, uint8_t k)
+void l_SBCI(uint16_t inst)
 {
 	std::cout << "SUBC" << std::endl;
 }
 
-void l_ORI(uint8_t rd, uint8_t k)
+void l_ORI(uint16_t inst)
 {
 	std::cout << "ORI" << std::endl;
 }
 
-void l_ANDI(uint8_t rd, uint8_t k)
+void l_ANDI(uint16_t inst)
 {
 	std::cout << "ANDI" << std::endl;
+}
+
+void l_LDD(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+void l_STD(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+
+//Load/store operations
+void l_LDS(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+void l_STS(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+void l_LDPostInc(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+void l_STPostInc(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+void l_LDPreDec(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+void l_STPreDec(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+void l_LPM(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+void l_ELPM(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+void l_LPMPostInc(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+void l_ELPMPostInc(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+void l_XCH(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+void l_LAS(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+void l_LAC(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+void l_LAT(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+void l_LDX(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+void l_STX(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+void l_LDXPostInc(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+void l_STXPostInc(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+void l_LDXPreDec(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+void l_STXPreDec(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+void l_PUSH(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+void l_POP(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+
+
+//One-operand instructions
+void l_COM(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+void l_NEG(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+void l_SWAP(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+void l_INC(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+void l_ASR(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+void l_LSR(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+void l_ROR(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+void l_SEB(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+void l_CLB(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+
+//Zero operand instructions
+void l_RET(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+void l_RETI(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+void l_SLEEP(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+void l_BREAK(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+void l_WDR(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+void l_LPM2(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+void l_ELPM2(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+void l_SPM(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+void l_SPMPostInc(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+
+void l_IJMP(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+void l_ICALL(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+void l_DEC(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+void l_DES(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+void l_JMP(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+void l_CALL(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+
+void l_ADIW(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+void l_SBIW(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+void l_CBI(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+void l_SBI(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+void l_SBIC(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+void l_SBIS(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+void l_MUL(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+
+void l_IN(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+void l_OUT(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+void l_RJMP(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+void l_RCALL(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+void l_LDI(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+void l_CBSR(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+void l_BLD(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+void l_BST(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+void l_SBRC(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+void l_SBRS(uint16_t inst)
+{
+	std::cout << __FUNCTION__ << std::endl;
+}
+
+
+void AddInstructionToMap(char* inst, unsigned char index, unsigned short opcode, InstructionHandler handler)
+{
+	char copy0[20], copy1[20];
+
+	if(!inst)
+		return;
+
+	strcpy(copy0, inst);
+	strcpy(copy1, inst);
+
+	while(inst[index])
+	{
+		if(inst[index] == 'x')
+		{
+			copy0[index] = '0';
+			copy1[index] = '1';
+
+			AddInstructionToMap(copy0, index, opcode, handler);
+			AddInstructionToMap(copy1, index, opcode, handler);
+			return;
+		}
+		else
+		{
+			opcode *= 2;
+			opcode += inst[index] - '0';
+		}
+
+		index++;
+	}
+
+	InstructionMap.insert(std::pair<uint16_t, InstructionHandler>(opcode, handler));
 }
 
 /*
@@ -129,204 +503,109 @@ void l_ANDI(uint8_t rd, uint8_t k)
  *provides a nice table that made writing the parser much easier
  *than organizing all of the entries from AVR's documentation.
 */
-bool ParseInstruction(uint16_t inst)
+void BuildInstructionMap()
 {
-	uint8_t instcode = ((uint8_t*)(&inst))[1];
-	uint8_t opcode = instcode;
+	AddInstructionToMap((char*)"0000000000000000", 0, 0, l_NOP);
+	AddInstructionToMap((char*)"00000001xxxxxxxx", 0, 0, l_MOVW);
+	AddInstructionToMap((char*)"00000010xxxxxxxx", 0, 0, l_MULS);
+	AddInstructionToMap((char*)"000000110xxx0xxx", 0, 0, l_MULSU);
+	AddInstructionToMap((char*)"000000110xxx1xxx", 0, 0, l_FMUL);
+	AddInstructionToMap((char*)"000000111xxx0xxx", 0, 0, l_FMULS);
+	AddInstructionToMap((char*)"000000111xxx1xxx", 0, 0, l_FMULSU);
 
-	uint8_t srcreg, destreg, constant;
+	AddInstructionToMap((char*)"000001xxxxxxxxxx", 0, 0, l_CPC);
+	AddInstructionToMap((char*)"000101xxxxxxxxxx", 0, 0, l_CP);
+	AddInstructionToMap((char*)"000010xxxxxxxxxx", 0, 0, l_SBC);
+	AddInstructionToMap((char*)"000110xxxxxxxxxx", 0, 0, l_SUB);
+	AddInstructionToMap((char*)"000011xxxxxxxxxx", 0, 0, l_ADD);
+	AddInstructionToMap((char*)"000111xxxxxxxxxx", 0, 0, l_ADC);
+	AddInstructionToMap((char*)"000100xxxxxxxxxx", 0, 0, l_CPSE);
+	AddInstructionToMap((char*)"001000xxxxxxxxxx", 0, 0, l_AND);
+	AddInstructionToMap((char*)"001001xxxxxxxxxx", 0, 0, l_EOR);
+	AddInstructionToMap((char*)"001010xxxxxxxxxx", 0, 0, l_OR);
+	AddInstructionToMap((char*)"001011xxxxxxxxxx", 0, 0, l_MOV);
 
-	//Get the 2 most significant bits
-	instcode = (instcode & 0xC0) >> 6;
+	AddInstructionToMap((char*)"0011xxxxxxxxxxxx", 0, 0, l_CPI);
 
-	switch(instcode)
-	{
-		case 0:
-			if(opcode & 0xFC)
-			{
-				//2 operand instructions
-				opcode = (opcode & 0x3C) >> 2;
+	AddInstructionToMap((char*)"0100xxxxxxxxxxxx", 0, 0, l_SBCI);
+	AddInstructionToMap((char*)"0101xxxxxxxxxxxx", 0, 0, l_SUBI);
+	AddInstructionToMap((char*)"0110xxxxxxxxxxxx", 0, 0, l_ORI);
+	AddInstructionToMap((char*)"0111xxxxxxxxxxxx", 0, 0, l_ANDI);
 
-				srcreg = ((uint8_t*)(&inst))[0] & 0x0F;
-				srcreg |= (((uint8_t*)(&inst))[1] & 0x02) << 3;
+	AddInstructionToMap((char*)"10x0xx0xxxxxxxxx", 0, 0, l_LDD);
+	AddInstructionToMap((char*)"10x0xx1xxxxxxxxx", 0, 0, l_STD);
 
-				destreg = ((uint8_t*)(&inst))[0] & 0xF0;
-				destreg |= (((uint8_t*)(&inst))[1] & 0x01) << 4;
+	AddInstructionToMap((char*)"1001000xxxxx0000", 0, 0, l_LDS);
+	AddInstructionToMap((char*)"1001001xxxxx0000", 0, 0, l_STS);
+	AddInstructionToMap((char*)"1001000xxxxxx001", 0, 0, l_LDPostInc);
+	AddInstructionToMap((char*)"1001001xxxxxx001", 0, 0, l_STPostInc);
+	AddInstructionToMap((char*)"1001000xxxxxx010", 0, 0, l_LDPreDec);
+	AddInstructionToMap((char*)"1001001xxxxxx010", 0, 0, l_STPreDec);
+	AddInstructionToMap((char*)"1001000xxxxx0100", 0, 0, l_LPM);
+	AddInstructionToMap((char*)"1001000xxxxx0110", 0, 0, l_ELPM);
+	AddInstructionToMap((char*)"1001000xxxxx0101", 0, 0, l_LPMPostInc);
+	AddInstructionToMap((char*)"1000100xxxxx0111", 0, 0, l_ELPMPostInc);
+	AddInstructionToMap((char*)"1001001xxxxx0100", 0, 0, l_XCH);
+	AddInstructionToMap((char*)"1001001xxxxx0101", 0, 0, l_LAC);
+	AddInstructionToMap((char*)"1001001xxxxx0111", 0, 0, l_LAT);
+	AddInstructionToMap((char*)"1001000xxxxx1100", 0, 0, l_LDX);
+	AddInstructionToMap((char*)"1001001xxxxx1100", 0, 0, l_STX);
+	AddInstructionToMap((char*)"1001000xxxxx1101", 0, 0, l_LDXPostInc);
+	AddInstructionToMap((char*)"1001001xxxxx1101", 0, 0, l_STXPostInc);
+	AddInstructionToMap((char*)"1001000xxxxx1110", 0, 0, l_LDXPreDec);
+	AddInstructionToMap((char*)"1001001xxxxx1110", 0, 0, l_STXPreDec);
+	AddInstructionToMap((char*)"1001000xxxxx1111", 0, 0, l_POP);
+	AddInstructionToMap((char*)"1001001xxxxx1111", 0, 0, l_PUSH);
 
-				constant = ((uint8_t*)(&inst))[0] & 0x0F;
-				constant |= (((uint8_t*)(&inst))[1] & 0x0F) << 4;
+	AddInstructionToMap((char*)"1001010xxxxx0000", 0, 0, l_COM);
+	AddInstructionToMap((char*)"1001010xxxxx0001", 0, 0, l_NEG);
+	AddInstructionToMap((char*)"1001010xxxxx0010", 0, 0, l_SWAP);
+	AddInstructionToMap((char*)"1001010xxxxx0011", 0, 0, l_INC);
+	AddInstructionToMap((char*)"1001010xxxxx0101", 0, 0, l_ASR);
+	AddInstructionToMap((char*)"1001010xxxxx0110", 0, 0, l_LSR);
+	AddInstructionToMap((char*)"1001010xxxxx0111", 0, 0, l_ROR);
 
-				switch(opcode)
-				{
-					case 1:
-						l_CPC(destreg, srcreg);
-						return true;
-						break;
+	AddInstructionToMap((char*)"100101000xxx1000", 0, 0, l_SEB);
+	AddInstructionToMap((char*)"100101001xxx1000", 0, 0, l_CLB);
 
-					case 2:
-						l_SBC(destreg, srcreg);
-						return true;
-						break;
+	AddInstructionToMap((char*)"1001010100001000", 0, 0, l_RET);
+	AddInstructionToMap((char*)"1001010100011000", 0, 0, l_RETI);
+	AddInstructionToMap((char*)"1001010110001000", 0, 0, l_SLEEP);
+	AddInstructionToMap((char*)"1001010110011000", 0, 0, l_BREAK);
+	AddInstructionToMap((char*)"1001010110101000", 0, 0, l_WDR);
+	AddInstructionToMap((char*)"1001010111001000", 0, 0, l_LPM2);
+	AddInstructionToMap((char*)"1001010111011000", 0, 0, l_ELPM2);
+	AddInstructionToMap((char*)"1001010111101000", 0, 0, l_SPM);
+	AddInstructionToMap((char*)"1001010111111000", 0, 0, l_SPMPostInc);
 
-					//The Wiki entry for this opcode is wrong, at time of writing 7/22/18
-					//From the AVR documentation no part of the register is in the opcode
-					//According to the Wiki, there would be a collision between this instruction
-					//and the SBC instruction
-					case 3:
-						l_ADD(destreg, srcreg);
-						return true;
-						break;
+	AddInstructionToMap((char*)"10010100000x1001", 0, 0, l_IJMP);
+	AddInstructionToMap((char*)"10010101000x1001", 0, 0, l_ICALL);
+	AddInstructionToMap((char*)"1001010xxxxx1010", 0, 0, l_DEC);
+	AddInstructionToMap((char*)"10010100xxxx1011", 0, 0, l_DES);
+	AddInstructionToMap((char*)"1001010xxxxx110x", 0, 0, l_JMP);
+	AddInstructionToMap((char*)"1001010xxxxx111x", 0, 0, l_CALL);
 
-					case 4:
-						l_CPSE(destreg, srcreg);
-						return true;
-						break;
+	AddInstructionToMap((char*)"10010110xxxxxxxx", 0, 0, l_ADIW);
+	AddInstructionToMap((char*)"10010111xxxxxxxx", 0, 0, l_SBIW);
+	AddInstructionToMap((char*)"10011000xxxxxxxx", 0, 0, l_CBI);
+	AddInstructionToMap((char*)"10011010xxxxxxxx", 0, 0, l_SBI);
+	AddInstructionToMap((char*)"10011001xxxxxxxx", 0, 0, l_SBIC);
+	AddInstructionToMap((char*)"10011011xxxxxxxx", 0, 0, l_SBIS);
+	AddInstructionToMap((char*)"100111xxxxxxxxxx", 0, 0, l_MUL);
 
-					case 5:
-						l_CP(destreg, srcreg);
-						return true;
-						break;
-
-					case 6:
-						l_SUB(destreg, srcreg);
-						return true;
-						break;
-
-					case 7:
-						l_ADC(destreg, srcreg);
-						return true;
-						break;
-
-					case 8:
-						l_AND(destreg, srcreg);
-						return true;
-						break;
-
-					case 9:
-						l_EOR(destreg, srcreg);
-						return true;
-						break;
-
-					case 10:
-						l_OR(destreg, srcreg);
-						return true;
-						break;
-
-					case 11:
-						l_MOV(destreg, srcreg);
-						return true;
-						break;
-
-					//This isn't a 2-operand instruction, but the instruction code is 0
-					//So I'll handle it here, even though part of the constant is in the opcode
-					case 12:
-					case 13:
-					case 14:
-					case 15:
-						l_CPI(destreg, constant);
-						return true;
-						break;
-
-					default:
-						std::cout << "UNKOWN " << inst << std::endl;
-						return false;
-						break;
-				}
-			}
-			else
-			{
-				//These instructions are weird and don't seem to belong
-				//to any set. Handle these later
-				opcode = (opcode & 0x03) << 1; //2 LSb of the MSB
-				opcode |= (((uint8_t*)(&inst))[0] & 0x80) >> 7; //And the MSb of the LSB
-
-				switch(opcode)
-				{
-					case 0:
-						l_NOP();
-						return true;
-						break;
-
-					case 1:
-					case 2:
-					case 3:
-						l_MOVW(0,0);
-						return true;
-						break;
-
-					case 4:
-					case 5:
-						l_MULS(0,0);
-						return true;
-						break;
-
-					case 6:
-						if(((uint8_t*)(&inst))[0] & 0x08)
-							l_FMUL(0,0);
-						else
-							l_MULSU(0,0);
-						return true;
-						break;
-
-					case 7:
-						if(((uint8_t*)(&inst))[0] & 0x08)
-							l_FMULS(0,0);
-						else
-							l_FMULSU(0,0);
-						return true;
-						break;
-
-					default:
-						std::cout << "UNKOWN " << inst << std::endl;
-						return false;
-						break;
-				}
-			}
-			break;
-
-		case 1:
-			//Register-immediate operations
-			opcode = (opcode & 0x30) >> 4;
-
-			switch(opcode)
-			{
-				case 0:
-					l_SBCI(0,0);
-					return true;
-					break;
-
-				case 1:
-					l_SUBI(0,0);
-					return true;
-					break;
-
-				case 2:
-					l_ORI(0,0);
-					return true;
-					break;
-
-				case 3:
-					l_ANDI(0,0);
-					return true;
-					break;
-
-				default:
-					std::cout << "UNKOWN " << inst << std::endl;
-					return false;
-					break;
-			}
-			break;
-
-		case 2:
-			break;
-
-		case 3:
-			break;
-	}
-
-	return false;
+	AddInstructionToMap((char*)"10110xxxxxxxxxxx", 0, 0, l_IN);
+	AddInstructionToMap((char*)"10111xxxxxxxxxxx", 0, 0, l_OUT);
+	AddInstructionToMap((char*)"1100xxxxxxxxxxxx", 0, 0, l_RJMP);
+	AddInstructionToMap((char*)"1101xxxxxxxxxxxx", 0, 0, l_RCALL);
+	AddInstructionToMap((char*)"1110xxxxxxxxxxxx", 0, 0, l_LDI);
+	AddInstructionToMap((char*)"11110xxxxxxxxxxx", 0, 0, l_CBSR);
+	AddInstructionToMap((char*)"1111100xxxxx0xxx", 0, 0, l_BLD);
+	AddInstructionToMap((char*)"1111101xxxxx0xxx", 0, 0, l_BST);
+	AddInstructionToMap((char*)"1111110xxxxx0xxx", 0, 0, l_SBRC);
+	AddInstructionToMap((char*)"1111111xxxxx0xxx", 0, 0, l_SBRS);
 }
 
 int main()
 {
+	BuildInstructionMap();
 }
