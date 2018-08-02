@@ -4,9 +4,18 @@
 #include <map>
 #include <functional>
 
+#define FLASH_SIZE		32768
+#define PIPELINE_SIZE	1
+#define MAX_PIPELINE	8
+
 typedef void (*InstructionHandler)(uint16_t);
 
 std::map<uint16_t, InstructionHandler> InstructionMap;
+uint16_t EmulatedFlash[FLASH_SIZE];
+uint16_t ProgramCounter;
+
+uint16_t InstructionPipeline[MAX_PIPELINE];
+uint8_t PipelineIn, PipelineOut;
 
 void l_NOP(uint16_t inst)
 {
@@ -463,6 +472,25 @@ void l_SBRS(uint16_t inst)
 }
 
 
+void PurgePipeline()
+{
+	memset(InstructionPipeline, 0, sizeof(InstructionPipeline));
+
+	PipelineOut = 0;
+	PipelineIn = PipelineOut + PIPELINE_SIZE;
+}
+
+void LoadInstruction()
+{
+	PipelineOut++;
+	PipelineOut = PipelineOut%MAX_PIPELINE;
+
+	PipelineIn++;
+	PipelineIn = PipelineIn%MAX_PIPELINE;
+
+	InstructionPipeline[PipelineIn] = EmulatedFlash[ProgramCounter];
+}
+
 void AddInstructionToMap(char* inst, unsigned char index, unsigned short opcode, InstructionHandler handler)
 {
 	char copy0[20], copy1[20];
@@ -608,7 +636,25 @@ void BuildInstructionMap()
 	AddInstructionToMap((char*)"1111111xxxxx0xxx", 0, 0, l_SBRS);
 }
 
+void DecodeInstruction(uint16_t inst)
+{
+	if(InstructionMap.find(inst) != InstructionMap.end())
+		InstructionMap.find(inst)->second(inst);
+	else
+		std::cout << "Invalid instruction" << std::endl;
+}
+
 int main()
 {
+	memset(EmulatedFlash, 0, sizeof(EmulatedFlash));
+
+	PurgePipeline();
 	BuildInstructionMap();
+
+	for(ProgramCounter = 0; ProgramCounter < 100; ProgramCounter++)
+	{
+		LoadInstruction();
+
+		DecodeInstruction(InstructionPipeline[PipelineOut]);
+	}
 }
