@@ -1,12 +1,30 @@
 #include <iostream>
 #include <cstdint>
 #include <cstring>
+#include <cstdio>
 #include <map>
 #include <functional>
 
 #define FLASH_SIZE		32768
 #define PIPELINE_SIZE	1
 #define MAX_PIPELINE	8
+
+enum HEX_PARSING_STATE
+{
+	START_OF_LINE = 0,
+	BYTE_COUNT_0,
+	BYTE_COUNT_1,
+	ADDRESS_0,
+	ADDRESS_1,
+	ADDRESS_2,
+	ADDRESS_3,
+	RECORD_TYPE_0,
+	RECORD_TYPE_1,
+	DATA_0,
+	DATA_1,
+	CHECKSUM_0,
+	CHECKSUM_1
+};
 
 typedef void (*InstructionHandler)(uint16_t);
 
@@ -472,6 +490,191 @@ void l_SBRS(uint16_t inst)
 }
 
 
+uint8_t HexDigitToDecimal(char c)
+{
+	switch(c)
+	{
+		case '0':
+		case '1':
+		case '2':
+		case '3':
+		case '4':
+		case '5':
+		case '6':
+		case '7':
+		case '8':
+		case '9':
+		return (uint8_t)(c - '0');
+		break;
+
+		case 'A':
+		case 'a':
+		return 10;
+		break;
+
+		case 'B':
+		case 'b':
+		return 11;
+		break;
+
+		case 'C':
+		case 'c':
+		return 12;
+		break;
+
+		case 'D':
+		case 'd':
+		return 13;
+		break;
+
+		case 'E':
+		case 'e':
+		return 14;
+		break;
+
+		case 'F':
+		case 'f':
+		return 15;
+		break;
+	}
+
+	return 0;
+}
+
+void LoadProgramMemory(char* path)
+{
+	HEX_PARSING_STATE ParseState = START_OF_LINE;
+	uint8_t LineByteCount = 0, LineChecksum = 0, LineAddress = 0, LineRecordType = 0;
+	uint8_t ByteCount = 0, Checksum = 0, Data[16];
+	char c;
+	FILE *fp = NULL;
+
+	fp = fopen(path, "r");
+	if(!fp)
+		return;
+
+	while((c = fgetc(fp)) != EOF)
+	{
+		switch(ParseState)
+		{
+			case START_OF_LINE:
+			if(c == ':')
+			{
+				LineByteCount = LineChecksum = LineAddress = LineRecordType = 0;
+				ByteCount = Checksum = 0;
+				memset(Data, 0, sizeof(Data));
+
+				ParseState = BYTE_COUNT_0;
+			}
+			break;
+
+			case BYTE_COUNT_0:
+				LineByteCount = HexDigitToDecimal(c);
+
+				ParseState = BYTE_COUNT_1;
+			break;
+
+			case BYTE_COUNT_1:
+				LineByteCount *= 16;
+				LineByteCount += HexDigitToDecimal(c);
+
+				Checksum += LineByteCount;
+
+				ParseState = ADDRESS_0;
+			break;
+
+			case ADDRESS_0:
+				LineAddress = HexDigitToDecimal(c);
+
+				ParseState = ADDRESS_1;
+			break;
+
+			case ADDRESS_1:
+				LineAddress *= 16;
+				LineAddress += HexDigitToDecimal(c);
+
+				ParseState = ADDRESS_2;
+			break;
+
+			case ADDRESS_2:
+				LineAddress *= 16;
+				LineAddress += HexDigitToDecimal(c);
+
+				ParseState = ADDRESS_3;
+			break;
+
+			case ADDRESS_3:
+				LineAddress *= 16;
+				LineAddress += HexDigitToDecimal(c);
+
+				Checksum += LineAddress;
+
+				ParseState = RECORD_TYPE_0;
+			break;
+
+			case RECORD_TYPE_0:
+				LineRecordType = HexDigitToDecimal(c);
+
+				ParseState = RECORD_TYPE_1;
+			break;
+
+			case RECORD_TYPE_1:
+				LineRecordType *= 16;
+				LineRecordType += HexDigitToDecimal(c);
+
+				Checksum += LineRecordType;
+
+				if(LineByteCount > 0)
+					ParseState = DATA_0;
+				else
+					ParseState = CHECKSUM_0;
+			break;
+
+			case DATA_0:
+				Data[ByteCount] = HexDigitToDecimal(c);
+
+				ParseState = DATA_1;
+			break;
+
+			case DATA_1:
+				Data[ByteCount] *= 16;
+				Data[ByteCount] += HexDigitToDecimal(c);
+
+				Checksum += Data[ByteCount];
+
+				ByteCount++;
+				if(ByteCount >= LineByteCount)
+					ParseState = CHECKSUM_0;
+				else
+					ParseState = DATA_0;
+			break;
+
+			case CHECKSUM_0:
+				LineChecksum = HexDigitToDecimal(c);
+
+				ParseState = CHECKSUM_1;
+			break;
+
+			case CHECKSUM_1:
+				LineChecksum *= 16;
+				LineChecksum += HexDigitToDecimal(c);
+
+				Checksum = ~Checksum;
+				Checksum++;
+
+				if(Checksum == LineChecksum && LineRecordType == 0)
+				{
+					memcpy(&EmulatedFlash[LineAddress], Data, ByteCount);
+				}
+
+				ParseState = START_OF_LINE;
+			break;
+		}
+	}
+
+	fclose(fp);
+}
+
 void PurgePipeline()
 {
 	memset(InstructionPipeline, 0, sizeof(InstructionPipeline));
@@ -650,6 +853,8 @@ int main()
 
 	PurgePipeline();
 	BuildInstructionMap();
+
+	LoadProgramMemory((char*)"test.hex");
 
 	for(ProgramCounter = 0; ProgramCounter < 100; ProgramCounter++)
 	{
