@@ -5,7 +5,7 @@
 #include <map>
 #include <functional>
 
-#define FLASH_SIZE		32768
+#define FLASH_SIZE		256
 #define PIPELINE_SIZE	1
 #define MAX_PIPELINE	8
 
@@ -26,14 +26,24 @@ enum HEX_PARSING_STATE
 	CHECKSUM_1
 };
 
+enum INSTRUCTION_DESTINATION
+{
+	DECODE = 0,
+	PROGRAM_COUNTER,
+	DELTA_PROGRAM_COUNTER
+};
+
 typedef void (*InstructionHandler)(uint16_t);
 
 std::map<uint16_t, InstructionHandler> InstructionMap;
-uint16_t EmulatedFlash[FLASH_SIZE];
+uint8_t EmulatedFlash[FLASH_SIZE];
 uint16_t ProgramCounter;
 
 uint16_t InstructionPipeline[MAX_PIPELINE];
 uint8_t PipelineIn, PipelineOut;
+
+INSTRUCTION_DESTINATION InstDest;
+uint32_t InstHold;
 
 void l_NOP(uint16_t inst)
 {
@@ -395,6 +405,10 @@ void l_DES(uint16_t inst)
 void l_JMP(uint16_t inst)
 {
 	std::cout << __FUNCTION__ << std::endl;
+	InstHold = (inst & 0x1F0) << 17;
+	InstHold = (inst & 0x01) << 16;
+
+	InstDest = PROGRAM_COUNTER;
 }
 
 void l_CALL(uint16_t inst)
@@ -664,7 +678,7 @@ void LoadProgramMemory(char* path)
 
 				if(Checksum == LineChecksum && LineRecordType == 0)
 				{
-					memcpy(&EmulatedFlash[LineAddress], Data, ByteCount);
+					memcpy((uint8_t*)&EmulatedFlash + LineAddress, Data, ByteCount);
 				}
 
 				ParseState = START_OF_LINE;
@@ -691,7 +705,8 @@ void LoadInstruction()
 	PipelineIn++;
 	PipelineIn = PipelineIn%MAX_PIPELINE;
 
-	InstructionPipeline[PipelineIn] = EmulatedFlash[ProgramCounter];
+	((uint8_t*)&InstructionPipeline[PipelineIn])[0] = EmulatedFlash[2*ProgramCounter];
+	((uint8_t*)&InstructionPipeline[PipelineIn])[1] = EmulatedFlash[2*ProgramCounter + 1];
 }
 
 void AddInstructionToMap(char* inst, unsigned char index, unsigned short opcode, InstructionHandler handler)
@@ -856,10 +871,25 @@ int main()
 
 	LoadProgramMemory((char*)"test.hex");
 
-	for(ProgramCounter = 0; ProgramCounter < 100; ProgramCounter++)
+	InstDest = DECODE;
+
+	while(ProgramCounter < 32768)
 	{
 		LoadInstruction();
 
-		DecodeInstruction(InstructionPipeline[PipelineOut]);
+		switch(InstDest)
+		{
+			case DECODE:
+			DecodeInstruction(InstructionPipeline[PipelineOut]);
+			ProgramCounter++;
+			break;
+
+			case PROGRAM_COUNTER:
+			InstHold += InstructionPipeline[PipelineOut];
+			ProgramCounter = InstHold;
+			PurgePipeline();
+			InstDest = DECODE;
+			break;
+		}
 	}
 }
