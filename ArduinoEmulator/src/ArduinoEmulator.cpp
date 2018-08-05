@@ -44,12 +44,8 @@ enum HEX_PARSING_STATE
 	CHECKSUM_1
 };
 
-enum INSTRUCTION_DESTINATION
-{
-	DECODE = 0,
-	PROGRAM_COUNTER,
-	DELTA_PROGRAM_COUNTER
-};
+void IncrementProgramCounter(int inc);
+void LoadInstruction();
 
 typedef void (*InstructionHandler)(uint16_t);
 
@@ -60,15 +56,14 @@ uint16_t ProgramCounter;
 
 uint8_t RegFile[REGFILE_SIZE];
 
-uint16_t InstructionPipeline[MAX_PIPELINE];
-uint8_t PipelineIn, PipelineOut;
+uint16_t CurrentInstruction;
 uint8_t StallCount;
-
-void PurgePipeline();
 
 void l_NOP(uint16_t inst)
 {
 	std::cout << "NOP" << std::endl;
+
+	ProgramCounter++;
 }
 
 void l_MOVW(uint16_t inst)
@@ -83,6 +78,8 @@ void l_MOVW(uint16_t inst)
 
 	RegFile[rd] = RegFile[rr];
 	RegFile[rd+1] = RegFile[rr + 1];
+
+	ProgramCounter++;
 }
 
 void l_MULS(uint16_t inst)
@@ -163,6 +160,8 @@ void l_AND(uint16_t inst)
 	std::cout << "AND " << (int)rd << "," << (int)rr << std::endl;
 
 	RegFile[rd] = RegFile[rd] & RegFile[rr];
+
+	ProgramCounter++;
 }
 
 void l_EOR(uint16_t inst)
@@ -181,6 +180,8 @@ void l_EOR(uint16_t inst)
 	std::cout << "EOR " << (int)rd << "," << (int)rr << std::endl;
 
 	RegFile[rd] = RegFile[rd] ^ RegFile[rr];
+
+	ProgramCounter++;
 }
 
 void l_OR(uint16_t inst)
@@ -228,6 +229,7 @@ void l_LDD(uint16_t inst)
 void l_STD(uint16_t inst)
 {
 	uint8_t rr, q;
+	uint16_t address;
 
 	rr = (unsigned char)(inst & 0xF0) >> 4;
 	rr |= (inst & 0x0100) >> 4;
@@ -236,7 +238,14 @@ void l_STD(uint16_t inst)
 	q |= (inst & 0xC00) >> 7;
 	q |= (inst & 0x2000) >> 8;
 
-	std::cout << "STD" << std::endl;
+	std::cout << "STD Z+" << (int)q << ",R" << (int)rr << std::endl;
+
+	//Z register pair
+	address = *(uint16_t*)&RegFile[30];
+	EmulatedSRAM[address] = RegFile[rr];
+
+	ProgramCounter++;
+	StallCount += 1;
 }
 
 
@@ -353,6 +362,9 @@ void l_PUSH(uint16_t inst)
 
 	*(EmulatedSRAM + SP) = RegFile[rr];
 	(*(uint16_t*)&RegFile[SP_REG_LOW]) -= 1;
+	//Decrement last
+
+	ProgramCounter++;
 }
 
 void l_POP(uint16_t inst)
@@ -365,8 +377,11 @@ void l_POP(uint16_t inst)
 
 	std::cout << "POP " << (int)rr << std::endl;
 
-	RegFile[rr] = *(EmulatedSRAM + SP);
+	//Increment first
 	(*(uint16_t*)&RegFile[SP_REG_LOW]) += 1;
+	RegFile[rr] = *(EmulatedSRAM + SP);
+
+	ProgramCounter++;
 }
 
 
@@ -421,7 +436,19 @@ void l_CLB(uint16_t inst)
 //Zero operand instructions
 void l_RET(uint16_t inst)
 {
-	std::cout << __FUNCTION__ << std::endl;
+	uint16_t address, SP;
+
+	//Increment first
+	(*(uint16_t*)&RegFile[SP_REG_LOW]) += 2;
+	SP = *(uint16_t*)&RegFile[SP_REG_LOW];
+
+	address = *(EmulatedSRAM + SP);
+
+	std::cout << "RET" << std::endl;
+
+	ProgramCounter = address;
+
+	StallCount += 3;
 }
 
 void l_RETI(uint16_t inst)
@@ -495,6 +522,10 @@ void l_JMP(uint16_t inst)
 	address = (inst & 0x01) << 16;
 
 	ProgramCounter++;
+	LoadInstruction();
+	address |= CurrentInstruction;
+
+	ProgramCounter = address;
 
 	StallCount += 1;
 }
@@ -510,10 +541,13 @@ void l_CALL(uint16_t inst)
 	address |= (inst & 0x01) << 16;
 
 	ProgramCounter++;
+	LoadInstruction();
+	address |= CurrentInstruction;
 
-	*(uint16_t*)(EmulatedSRAM + SP) = ProgramCounter;
+	*(uint16_t*)(EmulatedSRAM + SP) = ProgramCounter + 1;
 	(*(uint16_t*)&RegFile[SP_REG_LOW]) -= 2;
 
+	ProgramCounter = address;
 	StallCount += 3;
 }
 
@@ -565,7 +599,7 @@ void l_IN(uint16_t inst)
 	a += IOREG_OFFSET;
 	rr |= (inst & 0x0100) >> 4;
 
-	std::cout << "IN " << (int)a << "," << (int)rr << std::endl;
+	std::cout << "IN " << (int)rr << "," << (int)a << std::endl;
 
 	RegFile[rr] = RegFile[a];
 
@@ -704,6 +738,11 @@ uint8_t HexDigitToDecimal(char c)
 	return 0;
 }
 
+void IncrementProgramCounter(int inc)
+{
+	ProgramCounter += inc;
+}
+
 void LoadProgramMemory(char* path)
 {
 	HEX_PARSING_STATE ParseState = START_OF_LINE;
@@ -838,24 +877,10 @@ void LoadProgramMemory(char* path)
 	fclose(fp);
 }
 
-void PurgePipeline()
-{
-	memset(InstructionPipeline, 0, sizeof(InstructionPipeline));
-
-	PipelineOut = 0;
-	PipelineIn = PipelineOut + PIPELINE_SIZE;
-}
-
 void LoadInstruction()
 {
-	PipelineOut++;
-	PipelineOut = PipelineOut%MAX_PIPELINE;
-
-	PipelineIn++;
-	PipelineIn = PipelineIn%MAX_PIPELINE;
-
-	((uint8_t*)&InstructionPipeline[PipelineIn])[0] = EmulatedFlash[2*ProgramCounter];
-	((uint8_t*)&InstructionPipeline[PipelineIn])[1] = EmulatedFlash[2*ProgramCounter + 1];
+	((uint8_t*)&CurrentInstruction)[0] = EmulatedFlash[2*ProgramCounter];
+	((uint8_t*)&CurrentInstruction)[1] = EmulatedFlash[2*ProgramCounter + 1];
 }
 
 void AddInstructionToMap(char* inst, unsigned char index, unsigned short opcode, InstructionHandler handler)
@@ -1019,17 +1044,17 @@ int main()
 	*(uint16_t*)&RegFile[SP_REG_LOW] = RAM_SIZE - 1;
 	StallCount = 0;
 
-	PurgePipeline();
 	BuildInstructionMap();
 
 	LoadProgramMemory((char*)"DummyProject.hex");
 
 	while(ProgramCounter < 32768)
 	{
-		LoadInstruction();
-
 		if(!StallCount)
-			DecodeInstruction(InstructionPipeline[PipelineOut]);
+		{
+			LoadInstruction();
+			DecodeInstruction(CurrentInstruction);
+		}
 		else
 			StallCount--;
 	}
