@@ -5,9 +5,27 @@
 #include <map>
 #include <functional>
 
-#define FLASH_SIZE		256
+#define FLASH_SIZE		32768
+#define RAM_SIZE		2304
+
 #define PIPELINE_SIZE	1
 #define MAX_PIPELINE	8
+
+#define REGFILE_SIZE	0xC6
+#define IOREG_OFFSET	0x20
+
+#define STATUS_REG				0x5F
+#define STATUS_CARRY_BIT		0x01
+#define STATUS_ZERO_BIT			0x02
+#define STATUS_NEG_BIT			0x04
+#define STATUS_COMOVF_BIT		0x08
+#define STATUS_SIGN_BIT			0x10
+#define STATUS_HALFCARRY_BIT	0x20
+#define STATUS_COPY_BIT			0x40
+#define STATUS_INT_BIT			0x80
+
+#define SP_REG_LOW				0x5D
+#define SP_REG_HIGH				0x5E
 
 enum HEX_PARSING_STATE
 {
@@ -37,13 +55,18 @@ typedef void (*InstructionHandler)(uint16_t);
 
 std::map<uint16_t, InstructionHandler> InstructionMap;
 uint8_t EmulatedFlash[FLASH_SIZE];
+uint8_t EmulatedSRAM[RAM_SIZE];
 uint16_t ProgramCounter;
+
+uint8_t RegFile[REGFILE_SIZE];
 
 uint16_t InstructionPipeline[MAX_PIPELINE];
 uint8_t PipelineIn, PipelineOut;
 
 INSTRUCTION_DESTINATION InstDest;
 uint32_t InstHold;
+
+void PurgePipeline();
 
 void l_NOP(uint16_t inst)
 {
@@ -52,7 +75,16 @@ void l_NOP(uint16_t inst)
 
 void l_MOVW(uint16_t inst)
 {
-	std::cout << "MOVW" << std::endl;
+	uint8_t rr, rd;
+
+	rr = (unsigned char)(inst & 0x0F) << 1;
+	rd = (unsigned char)(inst & 0xF0) >> 3;
+
+	std::cout << "MOVW " << (int)rd+1 << ":" << (int)rd;
+	std::cout << "," << (int)rr+1 << ":" << (int)rr << std::endl;
+
+	RegFile[rd] = RegFile[rr];
+	RegFile[rd+1] = RegFile[rr + 1];
 }
 
 void l_MULS(uint16_t inst)
@@ -119,12 +151,38 @@ void l_CPSE(uint16_t inst)
 
 void l_AND(uint16_t inst)
 {
-	std::cout << "AND" << std::endl;
+	uint8_t rd,rr;
+
+	rr = (uint8_t)(inst & 0x0F);
+	rd = (uint8_t)(inst & 0xF0) >> 4;
+
+	if(inst & 0x200)
+		rr |= 0x10;
+
+	if(inst & 0x100)
+		rd |= 0x10;
+
+	std::cout << "AND " << (int)rd << "," << (int)rr << std::endl;
+
+	RegFile[rd] = RegFile[rd] & RegFile[rr];
 }
 
 void l_EOR(uint16_t inst)
 {
-	std::cout << "EOR" << std::endl;
+	uint8_t rd,rr;
+
+	rr = (uint8_t)(inst & 0x0F);
+	rd = (uint8_t)(inst & 0xF0) >> 4;
+
+	if(inst & 0x200)
+		rr |= 0x10;
+
+	if(inst & 0x100)
+		rd |= 0x10;
+
+	std::cout << "EOR " << (int)rd << "," << (int)rr << std::endl;
+
+	RegFile[rd] = RegFile[rd] ^ RegFile[rr];
 }
 
 void l_OR(uint16_t inst)
@@ -278,12 +336,30 @@ void l_STXPreDec(uint16_t inst)
 
 void l_PUSH(uint16_t inst)
 {
-	std::cout << __FUNCTION__ << std::endl;
+	uint8_t rr;
+	uint16_t SP = *(uint16_t*)&RegFile[SP_REG_LOW];
+
+	rr = (unsigned char)(inst & 0xF0) >> 4;
+	rr |= (inst & 0x100) >> 4;
+
+	std::cout << "PUSH " << (int)rr << std::endl;
+
+	*(EmulatedSRAM + SP) = RegFile[rr];
+	(*(uint16_t*)&RegFile[SP_REG_LOW]) -= 1;
 }
 
 void l_POP(uint16_t inst)
 {
-	std::cout << __FUNCTION__ << std::endl;
+	uint8_t rr;
+	uint16_t SP = *(uint16_t*)&RegFile[SP_REG_LOW];
+
+	rr = (unsigned char)(inst & 0xF0) >> 4;
+	rr |= (inst & 0x100) >> 4;
+
+	std::cout << "POP " << (int)rr << std::endl;
+
+	RegFile[rr] = *(EmulatedSRAM + SP);
+	(*(uint16_t*)&RegFile[SP_REG_LOW]) += 1;
 }
 
 
@@ -306,7 +382,7 @@ void l_SWAP(uint16_t inst)
 
 void l_INC(uint16_t inst)
 {
-	std::cout << __FUNCTION__ << std::endl;
+	std::cout << "INC" << std::endl;
 }
 
 void l_ASR(uint16_t inst)
@@ -384,7 +460,7 @@ void l_SPMPostInc(uint16_t inst)
 
 void l_IJMP(uint16_t inst)
 {
-	std::cout << __FUNCTION__ << std::endl;
+	std::cout << "IJMP" << std::endl;
 }
 
 void l_ICALL(uint16_t inst)
@@ -404,7 +480,8 @@ void l_DES(uint16_t inst)
 
 void l_JMP(uint16_t inst)
 {
-	std::cout << __FUNCTION__ << std::endl;
+	std::cout << "JMP" << std::endl;
+
 	InstHold = (inst & 0x1F0) << 17;
 	InstHold = (inst & 0x01) << 16;
 
@@ -413,7 +490,17 @@ void l_JMP(uint16_t inst)
 
 void l_CALL(uint16_t inst)
 {
-	std::cout << __FUNCTION__ << std::endl;
+	uint16_t SP = *(uint16_t*)&RegFile[SP_REG_LOW];
+
+	std::cout << "CALL" << std::endl;
+
+	InstHold = (inst & 0x1F0) << 17;
+	InstHold = (inst & 0x01) << 16;
+
+	*(uint16_t*)(EmulatedSRAM + SP) = ProgramCounter;
+	(*(uint16_t*)&RegFile[SP_REG_LOW]) -= 2;
+
+	InstDest = PROGRAM_COUNTER;
 }
 
 
@@ -455,17 +542,48 @@ void l_MUL(uint16_t inst)
 
 void l_IN(uint16_t inst)
 {
-	std::cout << __FUNCTION__ << std::endl;
+	unsigned char a, rr;
+
+	a = (unsigned char)(inst & 0x0F);
+	rr = ((unsigned char)(inst & 0xF0)) >> 4;
+
+	a |= (inst & 0x0600) >> 5;
+	a += IOREG_OFFSET;
+	rr |= (inst & 0x0100) >> 4;
+
+	std::cout << "IN " << (int)a << "," << (int)rr << std::endl;
+
+	RegFile[rr] = RegFile[a];
 }
 
 void l_OUT(uint16_t inst)
 {
-	std::cout << __FUNCTION__ << std::endl;
+	unsigned char a, rr;
+
+	a = (unsigned char)(inst & 0x0F);
+	rr = ((unsigned char)(inst & 0xF0)) >> 4;
+
+	a |= (inst & 0x0600) >> 5;
+	a += IOREG_OFFSET;
+	rr |= (inst & 0x0100) >> 4;
+
+	std::cout << "OUT " << (int)a << "," << (int)rr << std::endl;
+
+	RegFile[a] = RegFile[rr];
 }
 
 void l_RJMP(uint16_t inst)
 {
-	std::cout << __FUNCTION__ << std::endl;
+	int16_t rjmp;
+
+	rjmp = (inst & 0x0FFF);
+	if(rjmp & 0x0800)
+		rjmp |= 0xF000;
+
+	std::cout << "RJMP" << std::endl;
+
+	ProgramCounter = ProgramCounter - 1 + rjmp;
+	PurgePipeline();
 }
 
 void l_RCALL(uint16_t inst)
@@ -475,7 +593,17 @@ void l_RCALL(uint16_t inst)
 
 void l_LDI(uint16_t inst)
 {
-	std::cout << __FUNCTION__ << std::endl;
+	unsigned char rd, k;
+
+	k = (unsigned char)(inst & 0x0F);
+	rd = (unsigned char)(inst & 0xF0) >> 4;
+
+	k |= (inst & 0x0F00) >> 4;
+	rd += 0x10;
+
+	std::cout << "LDI " << (int)rd << "," << (int)k << std::endl;
+
+	RegFile[rd] = k;
 }
 
 void l_CBSR(uint16_t inst)
@@ -859,17 +987,20 @@ void DecodeInstruction(uint16_t inst)
 	if(InstructionMap.find(inst) != InstructionMap.end())
 		InstructionMap.find(inst)->second(inst);
 	else
-		std::cout << "Invalid instruction" << std::endl;
+		std::cout << "Invalid instruction " << inst << std::endl;
 }
 
 int main()
 {
 	memset(EmulatedFlash, 0, sizeof(EmulatedFlash));
+	memset(RegFile, 0, sizeof(RegFile));
+
+	*(uint16_t*)&RegFile[SP_REG_LOW] = RAM_SIZE - 1;
 
 	PurgePipeline();
 	BuildInstructionMap();
 
-	LoadProgramMemory((char*)"test.hex");
+	LoadProgramMemory((char*)"DummyProject.hex");
 
 	InstDest = DECODE;
 
