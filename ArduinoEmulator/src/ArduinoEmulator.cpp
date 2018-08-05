@@ -62,9 +62,7 @@ uint8_t RegFile[REGFILE_SIZE];
 
 uint16_t InstructionPipeline[MAX_PIPELINE];
 uint8_t PipelineIn, PipelineOut;
-
-INSTRUCTION_DESTINATION InstDest;
-uint32_t InstHold;
+uint8_t StallCount;
 
 void PurgePipeline();
 
@@ -229,7 +227,16 @@ void l_LDD(uint16_t inst)
 
 void l_STD(uint16_t inst)
 {
-	std::cout << __FUNCTION__ << std::endl;
+	uint8_t rr, q;
+
+	rr = (unsigned char)(inst & 0xF0) >> 4;
+	rr |= (inst & 0x0100) >> 4;
+
+	q = (unsigned char)(inst & 0x07);
+	q |= (inst & 0xC00) >> 7;
+	q |= (inst & 0x2000) >> 8;
+
+	std::cout << "STD" << std::endl;
 }
 
 
@@ -480,27 +487,34 @@ void l_DES(uint16_t inst)
 
 void l_JMP(uint16_t inst)
 {
+	uint32_t address;
+
 	std::cout << "JMP" << std::endl;
 
-	InstHold = (inst & 0x1F0) << 17;
-	InstHold = (inst & 0x01) << 16;
+	address = (inst & 0x1F0) << 17;
+	address = (inst & 0x01) << 16;
 
-	InstDest = PROGRAM_COUNTER;
+	ProgramCounter++;
+
+	StallCount += 1;
 }
 
 void l_CALL(uint16_t inst)
 {
 	uint16_t SP = *(uint16_t*)&RegFile[SP_REG_LOW];
+	uint32_t address;
 
 	std::cout << "CALL" << std::endl;
 
-	InstHold = (inst & 0x1F0) << 17;
-	InstHold = (inst & 0x01) << 16;
+	address = (inst & 0x1F0) << 17;
+	address |= (inst & 0x01) << 16;
+
+	ProgramCounter++;
 
 	*(uint16_t*)(EmulatedSRAM + SP) = ProgramCounter;
 	(*(uint16_t*)&RegFile[SP_REG_LOW]) -= 2;
 
-	InstDest = PROGRAM_COUNTER;
+	StallCount += 3;
 }
 
 
@@ -554,6 +568,8 @@ void l_IN(uint16_t inst)
 	std::cout << "IN " << (int)a << "," << (int)rr << std::endl;
 
 	RegFile[rr] = RegFile[a];
+
+	ProgramCounter++;
 }
 
 void l_OUT(uint16_t inst)
@@ -570,6 +586,8 @@ void l_OUT(uint16_t inst)
 	std::cout << "OUT " << (int)a << "," << (int)rr << std::endl;
 
 	RegFile[a] = RegFile[rr];
+
+	ProgramCounter++;
 }
 
 void l_RJMP(uint16_t inst)
@@ -583,7 +601,8 @@ void l_RJMP(uint16_t inst)
 	std::cout << "RJMP" << std::endl;
 
 	ProgramCounter = ProgramCounter - 1 + rjmp;
-	PurgePipeline();
+
+	StallCount++;
 }
 
 void l_RCALL(uint16_t inst)
@@ -604,6 +623,8 @@ void l_LDI(uint16_t inst)
 	std::cout << "LDI " << (int)rd << "," << (int)k << std::endl;
 
 	RegFile[rd] = k;
+
+	ProgramCounter++;
 }
 
 void l_CBSR(uint16_t inst)
@@ -996,31 +1017,20 @@ int main()
 	memset(RegFile, 0, sizeof(RegFile));
 
 	*(uint16_t*)&RegFile[SP_REG_LOW] = RAM_SIZE - 1;
+	StallCount = 0;
 
 	PurgePipeline();
 	BuildInstructionMap();
 
 	LoadProgramMemory((char*)"DummyProject.hex");
 
-	InstDest = DECODE;
-
 	while(ProgramCounter < 32768)
 	{
 		LoadInstruction();
 
-		switch(InstDest)
-		{
-			case DECODE:
+		if(!StallCount)
 			DecodeInstruction(InstructionPipeline[PipelineOut]);
-			ProgramCounter++;
-			break;
-
-			case PROGRAM_COUNTER:
-			InstHold += InstructionPipeline[PipelineOut];
-			ProgramCounter = InstHold;
-			PurgePipeline();
-			InstDest = DECODE;
-			break;
-		}
+		else
+			StallCount--;
 	}
 }
