@@ -5,6 +5,11 @@
 #include <map>
 #include <functional>
 
+#define _BV(bit)			(1 << bit)
+#define _SETBIT(num, bit)	(num |= _BV(bit))
+#define _CLRBIT(num, bit)	(num &= ~_BV(bit))
+#define _CHKBIT(num, bit)	(num & _BV(bit))
+
 #define FLASH_SIZE		32768
 #define RAM_SIZE		2304
 
@@ -15,14 +20,14 @@
 #define IOREG_OFFSET	0x20
 
 #define STATUS_REG				0x5F
-#define STATUS_CARRY_BIT		0x01
-#define STATUS_ZERO_BIT			0x02
-#define STATUS_NEG_BIT			0x04
-#define STATUS_COMOVF_BIT		0x08
-#define STATUS_SIGN_BIT			0x10
-#define STATUS_HALFCARRY_BIT	0x20
-#define STATUS_COPY_BIT			0x40
-#define STATUS_INT_BIT			0x80
+#define STATUS_BIT_I			7
+#define STATUS_BIT_T			6
+#define STATUS_BIT_H			5
+#define STATUS_BIT_S			4
+#define STATUS_BIT_V			3
+#define STATUS_BIT_N			2
+#define STATUS_BIT_Z			1
+#define STATUS_BIT_C			0
 
 #define SP_REG_LOW				0x5D
 #define SP_REG_HIGH				0x5E
@@ -70,8 +75,8 @@ void l_MOVW(uint16_t inst)
 {
 	uint8_t rr, rd;
 
-	rr = (unsigned char)(inst & 0x0F) << 1;
-	rd = (unsigned char)(inst & 0xF0) >> 3;
+	rr = (uint8_t)(inst & 0x0F) << 1;
+	rd = (uint8_t)(inst & 0xF0) >> 3;
 
 	std::cout << "MOVW " << (int)rd+1 << ":" << (int)rd;
 	std::cout << "," << (int)rr+1 << ":" << (int)rr << std::endl;
@@ -84,12 +89,37 @@ void l_MOVW(uint16_t inst)
 
 void l_MULS(uint16_t inst)
 {
-	std::cout << "MULS" << std::endl;
+	uint8_t rr, rd;
+
+	rr = (uint8_t)(inst & 0x0F);
+	rd = (uint8_t)(inst & 0xF0) >> 4;
+
+	rr += 0x10;
+	rd += 0x10;
+
+	std::cout << "MULS R" << (int)rd << ",R" << (int)rr << std::endl;
+
+	*(int16_t*)&RegFile[0] = (int16_t)((int8_t)RegFile[rd] * (int8_t)RegFile[rr]);
+
+	ProgramCounter++;
 }
 
 void l_MULSU(uint16_t inst)
 {
-	std::cout << "MULSU" << std::endl;
+	uint8_t rr, rd;
+
+	rr = (uint8_t)(inst & 0x07);
+	rd = (uint8_t)(inst & 0x70) >> 4;
+
+	rr += 0x10;
+	rd += 0x10;
+
+	std::cout << "MULSU R" << (int)rd << ",R" << (int)rr << std::endl;
+
+	*(int16_t*)&RegFile[0] = (int16_t)((int8_t)RegFile[rd] * RegFile[rr]);
+
+	ProgramCounter++;
+	StallCount += 1;
 }
 
 void l_FMUL(uint16_t inst)
@@ -111,32 +141,244 @@ void l_FMULSU(uint16_t inst)
 //2-operand instructions
 void l_CP(uint16_t inst)
 {
-	std::cout << "CP" << std::endl;
+	uint8_t rd,rr, r;
+
+	rr = (uint8_t)(inst & 0x0F);
+	rd = (uint8_t)(inst & 0xF0) >> 4;
+
+	rr |= (inst & 0x0200) >> 5;
+	rd |= (inst & 0x0100) >> 4;
+
+	std::cout << "CP R" << (int)rd << ",R" << (int)rr << std::endl;
+
+	r = RegFile[rd] - RegFile[rr];
+
+	if( (!_CHKBIT(rd, 7) && _CHKBIT(rr, 7)) ||
+		(_CHKBIT(rr, 7) && _CHKBIT(r, 7)) ||
+		(_CHKBIT(r, 7) && !_CHKBIT(rd, 7)) )
+		_SETBIT(RegFile[STATUS_REG], STATUS_BIT_C);
+
+	if(!r)
+		_SETBIT(RegFile[STATUS_REG], STATUS_BIT_Z);
+
+	if(_CHKBIT(r, 7))
+		_SETBIT(RegFile[STATUS_REG], STATUS_BIT_N);
+
+	if( (_CHKBIT(rd, 7) && !_CHKBIT(rr, 7) && _CHKBIT(r, 7)) ||
+		(!_CHKBIT(rd, 7) && _CHKBIT(rr, 7) && _CHKBIT(r, 7)))
+		_SETBIT(RegFile[STATUS_REG], STATUS_BIT_V);
+
+	if(_CHKBIT(RegFile[STATUS_REG], STATUS_BIT_N) ^
+	   _CHKBIT(RegFile[STATUS_REG], STATUS_BIT_V))
+		_SETBIT(RegFile[STATUS_REG], STATUS_BIT_S);
+
+	if( (!_CHKBIT(rd, 3) && _CHKBIT(rr, 3)) ||
+		(_CHKBIT(rr, 3) && _CHKBIT(r, 3)) ||
+		(_CHKBIT(r, 3) && !_CHKBIT(rd, 3)) )
+		_SETBIT(RegFile[STATUS_REG], STATUS_BIT_H);
 }
 
 void l_CPC(uint16_t inst)
 {
-	std::cout << "CPC" << std::endl;
+	uint8_t rd,rr, r;
+
+	rr = (uint8_t)(inst & 0x0F);
+	rd = (uint8_t)(inst & 0xF0) >> 4;
+
+	rr |= (inst & 0x0200) >> 5;
+	rd |= (inst & 0x0100) >> 4;
+
+	std::cout << "CPC R" << (int)rd << ",R" << (int)rr << std::endl;
+
+	r = RegFile[rd] - RegFile[rr] - (_CHKBIT(RegFile[STATUS_REG], STATUS_BIT_C) ? 1 : 0);
+
+	if( (!_CHKBIT(rd, 7) && _CHKBIT(rr, 7)) ||
+		(_CHKBIT(rr, 7) && _CHKBIT(r, 7)) ||
+		(_CHKBIT(r, 7) && !_CHKBIT(rd, 7)) )
+		_SETBIT(RegFile[STATUS_REG], STATUS_BIT_C);
+
+	if(!r)
+		_SETBIT(RegFile[STATUS_REG], STATUS_BIT_Z);
+
+	if(_CHKBIT(r, 7))
+		_SETBIT(RegFile[STATUS_REG], STATUS_BIT_N);
+
+	if( (_CHKBIT(rd, 7) && !_CHKBIT(rr, 7) && _CHKBIT(r, 7)) ||
+		(!_CHKBIT(rd, 7) && _CHKBIT(rr, 7) && _CHKBIT(r, 7)))
+		_SETBIT(RegFile[STATUS_REG], STATUS_BIT_V);
+
+	if(_CHKBIT(RegFile[STATUS_REG], STATUS_BIT_N) ^
+	   _CHKBIT(RegFile[STATUS_REG], STATUS_BIT_V))
+		_SETBIT(RegFile[STATUS_REG], STATUS_BIT_S);
+
+	if( (!_CHKBIT(rd, 3) && _CHKBIT(rr, 3)) ||
+		(_CHKBIT(rr, 3) && _CHKBIT(r, 3)) ||
+		(_CHKBIT(r, 3) && !_CHKBIT(rd, 3)) )
+		_SETBIT(RegFile[STATUS_REG], STATUS_BIT_H);
 }
 
 void l_SUB(uint16_t inst)
 {
-	std::cout << "SUB" << std::endl;
+	uint8_t rd,rr;
+
+	rr = (uint8_t)(inst & 0x0F);
+	rd = (uint8_t)(inst & 0xF0) >> 4;
+
+	rr |= (inst & 0x0200) >> 5;
+	rd |= (inst & 0x0100) >> 4;
+
+	std::cout << "SUB R" << (int)rd << ",R" << (int)rr << std::endl;
+
+	RegFile[rd] = RegFile[rd] - RegFile[rr];
+
+	if( (!_CHKBIT(rd, 7) && _CHKBIT(rr, 7)) ||
+		(_CHKBIT(rr, 7) && _CHKBIT(RegFile[rd], 7)) ||
+		(_CHKBIT(RegFile[rd], 7) && !_CHKBIT(rd, 7)) )
+		_SETBIT(RegFile[STATUS_REG], STATUS_BIT_C);
+
+	if(!RegFile[rd])
+		_SETBIT(RegFile[STATUS_REG], STATUS_BIT_Z);
+
+	if(_CHKBIT(RegFile[rd], 7))
+		_SETBIT(RegFile[STATUS_REG], STATUS_BIT_N);
+
+	if( (_CHKBIT(rd, 7) && !_CHKBIT(rr, 7) && _CHKBIT(RegFile[rd], 7)) ||
+		(!_CHKBIT(rd, 7) && _CHKBIT(rr, 7) && _CHKBIT(RegFile[rd], 7)))
+		_SETBIT(RegFile[STATUS_REG], STATUS_BIT_V);
+
+	if(_CHKBIT(RegFile[STATUS_REG], STATUS_BIT_N) ^
+	   _CHKBIT(RegFile[STATUS_REG], STATUS_BIT_V))
+		_SETBIT(RegFile[STATUS_REG], STATUS_BIT_S);
+
+	if( (!_CHKBIT(rd, 3) && _CHKBIT(rr, 3)) ||
+		(_CHKBIT(rr, 3) && _CHKBIT(RegFile[rd], 3)) ||
+		(_CHKBIT(RegFile[rd], 3) && !_CHKBIT(rd, 3)) )
+		_SETBIT(RegFile[STATUS_REG], STATUS_BIT_H);
+
+	ProgramCounter++;
 }
 
 void l_SBC(uint16_t inst)
 {
-	std::cout << "SBC" << std::endl;
+	uint8_t rd,rr;
+
+	rr = (uint8_t)(inst & 0x0F);
+	rd = (uint8_t)(inst & 0xF0) >> 4;
+
+	rr |= (inst & 0x0200) >> 5;
+	rd |= (inst & 0x0100) >> 4;
+
+	std::cout << "SBC R" << (int)rd << ",R" << (int)rr << std::endl;
+
+	RegFile[rd] = RegFile[rd] - RegFile[rr] - (_CHKBIT(RegFile[STATUS_REG], STATUS_BIT_C) ? 1 : 0);
+
+	if( (!_CHKBIT(rd, 7) && _CHKBIT(rr, 7)) ||
+		(_CHKBIT(rr, 7) && _CHKBIT(RegFile[rd], 7)) ||
+		(_CHKBIT(RegFile[rd], 7) && !_CHKBIT(rd, 7)) )
+		_SETBIT(RegFile[STATUS_REG], STATUS_BIT_C);
+
+	if(!RegFile[rd])
+		_SETBIT(RegFile[STATUS_REG], STATUS_BIT_Z);
+
+	if(_CHKBIT(RegFile[rd], 7))
+		_SETBIT(RegFile[STATUS_REG], STATUS_BIT_N);
+
+	if( (_CHKBIT(rd, 7) && !_CHKBIT(rr, 7) && _CHKBIT(RegFile[rd], 7)) ||
+		(!_CHKBIT(rd, 7) && _CHKBIT(rr, 7) && _CHKBIT(RegFile[rd], 7)))
+		_SETBIT(RegFile[STATUS_REG], STATUS_BIT_V);
+
+	if(_CHKBIT(RegFile[STATUS_REG], STATUS_BIT_N) ^
+	   _CHKBIT(RegFile[STATUS_REG], STATUS_BIT_V))
+		_SETBIT(RegFile[STATUS_REG], STATUS_BIT_S);
+
+	if( (!_CHKBIT(rd, 3) && _CHKBIT(rr, 3)) ||
+		(_CHKBIT(rr, 3) && _CHKBIT(RegFile[rd], 3)) ||
+		(_CHKBIT(RegFile[rd], 3) && !_CHKBIT(rd, 3)) )
+		_SETBIT(RegFile[STATUS_REG], STATUS_BIT_H);
+
+	ProgramCounter++;
 }
 
 void l_ADD(uint16_t inst)
 {
-	std::cout << "ADD" << std::endl;
+	uint8_t rd,rr;
+
+	rr = (uint8_t)(inst & 0x0F);
+	rd = (uint8_t)(inst & 0xF0) >> 4;
+
+	rr |= (inst & 0x0200) >> 5;
+	rd |= (inst & 0x0100) >> 4;
+
+	std::cout << "ADD R" << (int)rd << ",R" << (int)rr << std::endl;
+
+	RegFile[rd] = RegFile[rd] + RegFile[rr];
+
+	if( (!_CHKBIT(rd, 7) && _CHKBIT(rr, 7)) ||
+		(_CHKBIT(rr, 7) && _CHKBIT(RegFile[rd], 7)) ||
+		(_CHKBIT(RegFile[rd], 7) && !_CHKBIT(rd, 7)) )
+		_SETBIT(RegFile[STATUS_REG], STATUS_BIT_C);
+
+	if(!RegFile[rd])
+		_SETBIT(RegFile[STATUS_REG], STATUS_BIT_Z);
+
+	if(_CHKBIT(RegFile[rd], 7))
+		_SETBIT(RegFile[STATUS_REG], STATUS_BIT_N);
+
+	if( (_CHKBIT(rd, 7) && !_CHKBIT(rr, 7) && _CHKBIT(RegFile[rd], 7)) ||
+		(!_CHKBIT(rd, 7) && _CHKBIT(rr, 7) && _CHKBIT(RegFile[rd], 7)))
+		_SETBIT(RegFile[STATUS_REG], STATUS_BIT_V);
+
+	if(_CHKBIT(RegFile[STATUS_REG], STATUS_BIT_N) ^
+	   _CHKBIT(RegFile[STATUS_REG], STATUS_BIT_V))
+		_SETBIT(RegFile[STATUS_REG], STATUS_BIT_S);
+
+	if( (!_CHKBIT(rd, 3) && _CHKBIT(rr, 3)) ||
+		(_CHKBIT(rr, 3) && _CHKBIT(RegFile[rd], 3)) ||
+		(_CHKBIT(RegFile[rd], 3) && !_CHKBIT(rd, 3)) )
+		_SETBIT(RegFile[STATUS_REG], STATUS_BIT_H);
+
+	ProgramCounter++;
 }
 
 void l_ADC(uint16_t inst)
 {
-	std::cout << "ADC" << std::endl;
+	uint8_t rd,rr;
+
+	rr = (uint8_t)(inst & 0x0F);
+	rd = (uint8_t)(inst & 0xF0) >> 4;
+
+	rr |= (inst & 0x0200) >> 5;
+	rd |= (inst & 0x0100) >> 4;
+
+	std::cout << "ADC R" << (int)rd << ",R" << (int)rr << std::endl;
+
+	RegFile[rd] = RegFile[rd] + RegFile[rr] + (_CHKBIT(RegFile[STATUS_REG], STATUS_BIT_C) ? 1 : 0);
+
+	if( (!_CHKBIT(rd, 7) && _CHKBIT(rr, 7)) ||
+		(_CHKBIT(rr, 7) && _CHKBIT(RegFile[rd], 7)) ||
+		(_CHKBIT(RegFile[rd], 7) && !_CHKBIT(rd, 7)) )
+		_SETBIT(RegFile[STATUS_REG], STATUS_BIT_C);
+
+	if(!RegFile[rd])
+		_SETBIT(RegFile[STATUS_REG], STATUS_BIT_Z);
+
+	if(_CHKBIT(RegFile[rd], 7))
+		_SETBIT(RegFile[STATUS_REG], STATUS_BIT_N);
+
+	if( (_CHKBIT(rd, 7) && !_CHKBIT(rr, 7) && _CHKBIT(RegFile[rd], 7)) ||
+		(!_CHKBIT(rd, 7) && _CHKBIT(rr, 7) && _CHKBIT(RegFile[rd], 7)))
+		_SETBIT(RegFile[STATUS_REG], STATUS_BIT_V);
+
+	if(_CHKBIT(RegFile[STATUS_REG], STATUS_BIT_N) ^
+	   _CHKBIT(RegFile[STATUS_REG], STATUS_BIT_V))
+		_SETBIT(RegFile[STATUS_REG], STATUS_BIT_S);
+
+	if( (!_CHKBIT(rd, 3) && _CHKBIT(rr, 3)) ||
+		(_CHKBIT(rr, 3) && _CHKBIT(RegFile[rd], 3)) ||
+		(_CHKBIT(RegFile[rd], 3) && !_CHKBIT(rd, 3)) )
+		_SETBIT(RegFile[STATUS_REG], STATUS_BIT_H);
+
+	ProgramCounter++;
 }
 
 void l_CPSE(uint16_t inst)
@@ -151,15 +393,24 @@ void l_AND(uint16_t inst)
 	rr = (uint8_t)(inst & 0x0F);
 	rd = (uint8_t)(inst & 0xF0) >> 4;
 
-	if(inst & 0x200)
-		rr |= 0x10;
+	rr |= (inst & 0x0200) >> 5;
+	rd |= (inst & 0x0100) >> 4;
 
-	if(inst & 0x100)
-		rd |= 0x10;
-
-	std::cout << "AND " << (int)rd << "," << (int)rr << std::endl;
+	std::cout << "AND R" << (int)rd << ",R" << (int)rr << std::endl;
 
 	RegFile[rd] = RegFile[rd] & RegFile[rr];
+
+	if(!RegFile[rd])
+		_SETBIT(RegFile[STATUS_REG], STATUS_BIT_Z);
+
+	if(_CHKBIT(RegFile[rd], 7))
+		_SETBIT(RegFile[STATUS_REG], STATUS_BIT_N);
+
+	_CLRBIT(RegFile[STATUS_REG], STATUS_BIT_V);
+
+	if(_CHKBIT(RegFile[STATUS_REG], STATUS_BIT_N) ^
+	   _CHKBIT(RegFile[STATUS_REG], STATUS_BIT_V))
+		_SETBIT(RegFile[STATUS_REG], STATUS_BIT_S);
 
 	ProgramCounter++;
 }
@@ -171,27 +422,68 @@ void l_EOR(uint16_t inst)
 	rr = (uint8_t)(inst & 0x0F);
 	rd = (uint8_t)(inst & 0xF0) >> 4;
 
-	if(inst & 0x200)
-		rr |= 0x10;
+	rr |= (inst & 0x0200) >> 5;
+	rd |= (inst & 0x0100) >> 4;
 
-	if(inst & 0x100)
-		rd |= 0x10;
-
-	std::cout << "EOR " << (int)rd << "," << (int)rr << std::endl;
+	std::cout << "EOR R" << (int)rd << ",R" << (int)rr << std::endl;
 
 	RegFile[rd] = RegFile[rd] ^ RegFile[rr];
+
+	if(!RegFile[rd])
+		_SETBIT(RegFile[STATUS_REG], STATUS_BIT_Z);
+
+	if(_CHKBIT(RegFile[rd], 7))
+		_SETBIT(RegFile[STATUS_REG], STATUS_BIT_N);
+
+	_CLRBIT(RegFile[STATUS_REG], STATUS_BIT_V);
+
+	if(_CHKBIT(RegFile[STATUS_REG], STATUS_BIT_N) ^
+	   _CHKBIT(RegFile[STATUS_REG], STATUS_BIT_V))
+		_SETBIT(RegFile[STATUS_REG], STATUS_BIT_S);
 
 	ProgramCounter++;
 }
 
 void l_OR(uint16_t inst)
 {
-	std::cout << "OR" << std::endl;
+	uint8_t rd,rr;
+
+	rr = (uint8_t)(inst & 0x0F);
+	rd = (uint8_t)(inst & 0xF0) >> 4;
+
+	rr |= (inst & 0x0200) >> 5;
+	rd |= (inst & 0x0100) >> 4;
+
+	std::cout << "OR R" << (int)rd << ",R" << (int)rr << std::endl;
+
+	RegFile[rd] = RegFile[rd] | RegFile[rr];
+
+	if(!RegFile[rd])
+		_SETBIT(RegFile[STATUS_REG], STATUS_BIT_Z);
+
+	if(_CHKBIT(RegFile[rd], 7))
+		_SETBIT(RegFile[STATUS_REG], STATUS_BIT_N);
+
+	_CLRBIT(RegFile[STATUS_REG], STATUS_BIT_V);
+
+	if(_CHKBIT(RegFile[STATUS_REG], STATUS_BIT_N) ^
+	   _CHKBIT(RegFile[STATUS_REG], STATUS_BIT_V))
+		_SETBIT(RegFile[STATUS_REG], STATUS_BIT_S);
+
+	ProgramCounter++;
 }
 
 void l_MOV(uint16_t inst)
 {
-	std::cout << "MOV" << std::endl;
+	uint8_t rd,rr;
+
+	rr = (uint8_t)(inst & 0x0F);
+	rd = (uint8_t)(inst & 0xF0) >> 4;
+
+	rr |= (inst & 0x0200) >> 5;
+	rd |= (inst & 0x0100) >> 4;
+
+	std::cout << "MOV R" << (int)rd << ",R" << (int)rr << std::endl;
 }
 
 void l_CPI(uint16_t inst)
@@ -223,7 +515,24 @@ void l_ANDI(uint16_t inst)
 
 void l_LDD(uint16_t inst)
 {
-	std::cout << __FUNCTION__ << std::endl;
+	uint8_t rd, q;
+	uint16_t address;
+
+	rd = (uint8_t)(inst & 0xF0) >> 4;
+	rd |= (inst & 0x0100) >> 4;
+
+	q = (uint8_t)(inst & 0x07);
+	q |= (inst & 0xC00) >> 7;
+	q |= (inst & 0x2000) >> 8;
+
+	std::cout << "LDD R" << (int)rd << ",Z+" << (int)q << std::endl;
+
+	//Z register pair
+	address = *(uint16_t*)&RegFile[30];
+	RegFile[rd] = EmulatedSRAM[address];
+
+	ProgramCounter++;
+	StallCount += 1;
 }
 
 void l_STD(uint16_t inst)
@@ -231,10 +540,10 @@ void l_STD(uint16_t inst)
 	uint8_t rr, q;
 	uint16_t address;
 
-	rr = (unsigned char)(inst & 0xF0) >> 4;
+	rr = (uint8_t)(inst & 0xF0) >> 4;
 	rr |= (inst & 0x0100) >> 4;
 
-	q = (unsigned char)(inst & 0x07);
+	q = (uint8_t)(inst & 0x07);
 	q |= (inst & 0xC00) >> 7;
 	q |= (inst & 0x2000) >> 8;
 
@@ -355,7 +664,7 @@ void l_PUSH(uint16_t inst)
 	uint8_t rr;
 	uint16_t SP = *(uint16_t*)&RegFile[SP_REG_LOW];
 
-	rr = (unsigned char)(inst & 0xF0) >> 4;
+	rr = (uint8_t)(inst & 0xF0) >> 4;
 	rr |= (inst & 0x100) >> 4;
 
 	std::cout << "PUSH " << (int)rr << std::endl;
@@ -372,7 +681,7 @@ void l_POP(uint16_t inst)
 	uint8_t rr;
 	uint16_t SP = *(uint16_t*)&RegFile[SP_REG_LOW];
 
-	rr = (unsigned char)(inst & 0xF0) >> 4;
+	rr = (uint8_t)(inst & 0xF0) >> 4;
 	rr |= (inst & 0x100) >> 4;
 
 	std::cout << "POP " << (int)rr << std::endl;
@@ -590,10 +899,10 @@ void l_MUL(uint16_t inst)
 
 void l_IN(uint16_t inst)
 {
-	unsigned char a, rr;
+	uint8_t a, rr;
 
-	a = (unsigned char)(inst & 0x0F);
-	rr = ((unsigned char)(inst & 0xF0)) >> 4;
+	a = (uint8_t)(inst & 0x0F);
+	rr = ((uint8_t)(inst & 0xF0)) >> 4;
 
 	a |= (inst & 0x0600) >> 5;
 	a += IOREG_OFFSET;
@@ -608,10 +917,10 @@ void l_IN(uint16_t inst)
 
 void l_OUT(uint16_t inst)
 {
-	unsigned char a, rr;
+	uint8_t a, rr;
 
-	a = (unsigned char)(inst & 0x0F);
-	rr = ((unsigned char)(inst & 0xF0)) >> 4;
+	a = (uint8_t)(inst & 0x0F);
+	rr = ((uint8_t)(inst & 0xF0)) >> 4;
 
 	a |= (inst & 0x0600) >> 5;
 	a += IOREG_OFFSET;
@@ -646,10 +955,10 @@ void l_RCALL(uint16_t inst)
 
 void l_LDI(uint16_t inst)
 {
-	unsigned char rd, k;
+	uint8_t rd, k;
 
-	k = (unsigned char)(inst & 0x0F);
-	rd = (unsigned char)(inst & 0xF0) >> 4;
+	k = (uint8_t)(inst & 0x0F);
+	rd = (uint8_t)(inst & 0xF0) >> 4;
 
 	k |= (inst & 0x0F00) >> 4;
 	rd += 0x10;
@@ -883,7 +1192,7 @@ void LoadInstruction()
 	((uint8_t*)&CurrentInstruction)[1] = EmulatedFlash[2*ProgramCounter + 1];
 }
 
-void AddInstructionToMap(char* inst, unsigned char index, unsigned short opcode, InstructionHandler handler)
+void AddInstructionToMap(char* inst, uint8_t index, uint16_t opcode, InstructionHandler handler)
 {
 	char copy0[20], copy1[20];
 
